@@ -1,0 +1,84 @@
+name: Qode Collector
+
+on:
+  push:
+    branches: [main]
+
+  schedule:
+    - cron: '0 */12 * * *'
+    - cron: '0 0 * * *'
+
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Run mode (featured | full | both)'
+        required: false
+        default: 'both'
+
+jobs:
+  featured:
+    if: |
+      github.event_name == 'push' ||
+      (github.event_name == 'workflow_dispatch' && (inputs.mode == 'featured' || inputs.mode == 'both')) ||
+      (github.event_name == 'schedule' && github.event.schedule == '0 */12 * * *')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run Qode (featured)
+        env:
+          SOURCES_KEY: ${{ secrets.SOURCES_KEY }}
+        run: python qode.py featured
+
+      - name: Commit & Push (featured)
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore: update featured outputs [skip ci]"
+          file_pattern: |
+            nodes_featured_12h.txt
+            report/featured.json
+
+  full:
+    if: |
+      (github.event_name == 'workflow_dispatch' && (inputs.mode == 'full' || inputs.mode == 'both')) ||
+      (github.event_name == 'schedule' && github.event.schedule == '0 0 * * *')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run Qode (full)
+        env:
+          SOURCES_KEY: ${{ secrets.SOURCES_KEY }}
+        run: python qode.py full
+
+      - name: Commit & Push (full)
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore: update full outputs [skip ci]"
+          file_pattern: |
+            nodes_full_24h.txt
+            report/full.json
