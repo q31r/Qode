@@ -1,18 +1,18 @@
 {
   "label": "featured-12h",
-  "timestamp": "2026-11-07T10:57:49.609314+00:00",
-  "duration_seconds": 1.46,
+  "timestamp": "2026-11-07T17:42:01.542770+00:00",
+  "duration_seconds": 0.6,
   "sources_total": 17,
   "sources_ok": 17,
   "sources_failed": 0,
-  "raw_count": 6641,
-  "unique_count": 6351,
-  "duplicates_removed": 290,
+  "raw_count": 6414,
+  "unique_count": 6149,
+  "duplicates_removed": 265,
   "failed_sources": [],
   "protocol_breakdown": {
-    "ss": 2069,
-    "trojan": 859,
-    "vmess": 1797,
-    "vless": 1626
+    "ss": 2076,
+    "trojan": 830,
+    "vmess": 1777,
+    "vless": 1466
   }
 }
