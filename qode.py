@@ -151,10 +151,10 @@ def collect_batch(sources: list[str], label: str) -> tuple[list[str], dict]:
                     all_configs.append(c)
                     new += 1
             succeeded += 1
-            print(f"✓ +{new} new (total: {len(all_configs)})")
+            print(f"+{new} new (total: {len(all_configs)})")
         else:
             failed.append({"id": i, "name": name, "error": err})
-            print(f"✗ {err}")
+            print(f"{err}")
 
     proto_counts: dict[str, int] = {}
     for c in all_configs:

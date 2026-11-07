@@ -13,18 +13,9 @@ on:
     - cron: '0 0 * * *'
 
   workflow_dispatch:
-    inputs:
-      mode:
-        description: 'Run mode (featured | full | both)'
-        required: false
-        default: 'both'
 
 jobs:
   featured:
-    if: |
-      github.event_name == 'push' ||
-      github.event_name == 'schedule' ||
-      (github.event_name == 'workflow_dispatch' && (inputs.mode == 'featured' || inputs.mode == 'both'))
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -49,8 +40,13 @@ jobs:
           SOURCES_KEY: ${{ secrets.SOURCES_KEY }}
         run: python qode.py featured
 
+      - name: Stage outputs
+        run: |
+          git add -A
+
       - name: Pull before push
-        run: git pull --rebase origin main
+        run: |
+          git pull --rebase origin main || true
 
       - name: Commit & Push (featured)
         uses: stefanzweifel/git-auto-commit-action@v5
@@ -59,10 +55,6 @@ jobs:
           file_pattern: "nodes_featured_12h.txt report/"
 
   full:
-    if: |
-      github.event_name == 'push' ||
-      github.event_name == 'schedule' ||
-      (github.event_name == 'workflow_dispatch' && (inputs.mode == 'full' || inputs.mode == 'both'))
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -87,11 +79,23 @@ jobs:
           SOURCES_KEY: ${{ secrets.SOURCES_KEY }}
         run: python qode.py full
 
+      - name: Stage outputs
+        run: |
+          git add -A
+
       - name: Pull before push
-        run: git pull --rebase origin main
+        run: |
+          git pull --rebase origin main || true
 
       - name: Commit & Push (full)
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "chore: update full outputs [skip ci]"
           file_pattern: "nodes_full_24h.txt report/"
+
+  both:
+    needs: [featured, full]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Done
+        run: echo "Both pipelines finished."
