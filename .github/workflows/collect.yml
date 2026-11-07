@@ -37,11 +37,11 @@ jobs:
           SOURCES_KEY: ${{ secrets.SOURCES_KEY }}
         run: python qode.py both
 
+      - name: Stage all changes
+        run: |
+          git add -A
+
       - name: Commit & Push
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "chore: update outputs and reports [skip ci]"
-          file_pattern: |
-            nodes_featured_12h.txt
-            nodes_full_24h.txt
-            report/
