@@ -1,0 +1,18 @@
+{
+  "label": "full-24h",
+  "timestamp": "2026-11-07T10:37:30.598484+00:00",
+  "duration_seconds": 0.52,
+  "sources_total": 17,
+  "sources_ok": 17,
+  "sources_failed": 0,
+  "raw_count": 6641,
+  "unique_count": 6351,
+  "duplicates_removed": 290,
+  "failed_sources": [],
+  "protocol_breakdown": {
+    "ss": 2069,
+    "trojan": 859,
+    "vmess": 1797,
+    "vless": 1626
+  }
+}
