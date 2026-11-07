@@ -56,9 +56,7 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "chore: update featured outputs [skip ci]"
-          file_pattern: |
-            nodes_featured_12h.txt
-            report/featured.json
+          file_pattern: "nodes_featured_12h.txt report/"
 
   full:
     if: |
@@ -96,6 +94,4 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "chore: update full outputs [skip ci]"
-          file_pattern: |
-            nodes_full_24h.txt
-            report/full.json
+          file_pattern: "nodes_full_24h.txt report/"
