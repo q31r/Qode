@@ -3,6 +3,10 @@ name: Qode Collector
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - 'nodes_featured_12h.txt'
+      - 'nodes_full_24h.txt'
+      - 'report/**'
 
   schedule:
     - cron: '0 */12 * * *'
@@ -23,8 +27,8 @@ jobs:
   featured:
     if: |
       github.event_name == 'push' ||
-      (github.event_name == 'workflow_dispatch' && (inputs.mode == 'featured' || inputs.mode == 'both')) ||
-      (github.event_name == 'schedule' && github.event.schedule == '0 */12 * * *')
+      github.event_name == 'schedule' ||
+      (github.event_name == 'workflow_dispatch' && (inputs.mode == 'featured' || inputs.mode == 'both'))
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -56,8 +60,9 @@ jobs:
 
   full:
     if: |
-      (github.event_name == 'workflow_dispatch' && (inputs.mode == 'full' || inputs.mode == 'both')) ||
-      (github.event_name == 'schedule' && github.event.schedule == '0 0 * * *')
+      github.event_name == 'push' ||
+      github.event_name == 'schedule' ||
+      (github.event_name == 'workflow_dispatch' && (inputs.mode == 'full' || inputs.mode == 'both'))
     runs-on: ubuntu-latest
     permissions:
       contents: write
