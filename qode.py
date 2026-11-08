@@ -17,6 +17,7 @@ from cryptography.fernet import Fernet
 SOURCES_FILE = "sources.enc"
 OUTPUT_FULL = "nodes_full.txt"
 OUTPUT_FEATURED = "nodes_featured.txt"
+OUTPUT_CURATED = "nodes_curated.txt"
 REPORT_DIR = "report"
 
 TIMEOUT = 15
@@ -50,7 +51,7 @@ def classify_error(exc: Exception | None, status: int | None = None) -> str:
     if "InvalidURL" in name or "MissingSchema" in name: return "invalid_url"
     return "request_failed"
 
-def load_sources() -> list[str]:
+def load_sources() -> tuple[list[str], list[str]]:
     password = os.environ["SOURCES_KEY"].encode()
     key = base64.urlsafe_b64encode(hashlib.sha256(password).digest())
     cipher = Fernet(key)
@@ -58,17 +59,27 @@ def load_sources() -> list[str]:
     with open(SOURCES_FILE, "rb") as f:
         plaintext = cipher.decrypt(f.read()).decode("utf-8")
 
-    sources = []
+    featured = []
+    regular = []
     seen = set()
+
     for line in plaintext.splitlines():
         line = line.strip()
         if not line or line.startswith("#"): continue
-        if line.startswith("*"): line = line[1:].strip()
+        
+        is_featured = line.startswith("*")
+        if is_featured: line = line[1:].strip()
+        
         if not line.startswith(("http://", "https://")): continue
         if line in seen: continue
         seen.add(line)
-        sources.append(line)
-    return sources
+        
+        if is_featured:
+            featured.append(line)
+        else:
+            regular.append(line)
+            
+    return regular, featured
 
 def download_source(url: str) -> tuple[list[str], bool, str]:
     last_err = "unknown"
@@ -170,6 +181,31 @@ def test_xray_latency(config: str, xray_path: str) -> tuple[bool, float]:
         if temp_cfg_path and os.path.exists(temp_cfg_path):
             os.unlink(temp_cfg_path)
 
+def download_curated(sources: list[str]) -> list[str]:
+    print("\n" + "=" * 60)
+    print(f"Qode — Curated Collection ({len(sources)} sources, no testing)")
+    print("=" * 60)
+    
+    all_configs = []
+    seen = set()
+    
+    with concurrent.futures.ThreadPoolExecutor(max_workers=DOWNLOAD_WORKERS) as executor:
+        futures = {executor.submit(download_source, url): url for url in sources}
+        for future in concurrent.futures.as_completed(futures):
+            configs, ok, err = future.result()
+            if ok:
+                new = 0
+                for c in configs:
+                    if c not in seen:
+                        seen.add(c)
+                        all_configs.append(c)
+                        new += 1
+                print(f"  -> +{new} new (total: {len(all_configs)})")
+            else:
+                print(f"  -> {err}")
+
+    return all_configs
+
 def collect_and_scan_full(sources: list[str], workers: int) -> tuple[list[dict], dict]:
     started_at = time.time()
     print("=" * 60)
@@ -270,14 +306,22 @@ def build_featured(alive_full: list[dict], workers: int, xray_exe: str) -> tuple
 def main():
     os.makedirs(REPORT_DIR, exist_ok=True)
     workers = benchmark_system()
-    sources = load_sources()
+    regular_sources, curated_sources = load_sources()
     
     xray_exe = os.path.join("xray-core", "xray.exe") if os.name == 'nt' else os.path.join("xray-core", "xray")
     if not os.path.exists(xray_exe):
         print("Xray executable not found! Exiting.")
         sys.exit(1)
 
-    alive_full, full_report = collect_and_scan_full(sources, workers)
+    # 1. Curated (Starred sources, no testing)
+    if curated_sources:
+        curated_configs = download_curated(curated_sources)
+        with open(OUTPUT_CURATED, "w", encoding="utf-8") as f:
+            f.write("\n".join(curated_configs))
+        print(f"→ {OUTPUT_CURATED} saved.")
+
+    # 2. Full & Featured (Regular sources)
+    alive_full, full_report = collect_and_scan_full(regular_sources, workers)
     with open(os.path.join(REPORT_DIR, "full.json"), "w", encoding="utf-8") as f:
         json.dump(full_report, f, indent=2, ensure_ascii=False)
     with open(OUTPUT_FULL, "w", encoding="utf-8") as f:
