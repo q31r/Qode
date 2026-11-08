@@ -52,8 +52,9 @@ def classify_error(exc: Exception | None, status: int | None = None) -> str:
 
 def load_sources() -> tuple[list[str], list[str]]:
     password = os.environ["SOURCES_KEY"].encode()
-    key = base64.urlsafe_b64encode(password.ljust(32)[:32])
+    key = base64.urlsafe_b64encode(hashlib.sha256(password).digest())
     cipher = Fernet(key)
+    
     with open(SOURCES_FILE, "rb") as f:
         plaintext = cipher.decrypt(f.read()).decode("utf-8")
 
@@ -163,6 +164,8 @@ def test_xray(config: str, xray_path: str) -> bool:
         }]
     }
     
+    temp_cfg_path = None
+    proc = None
     try:
         with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False, encoding='utf-8') as f:
             json.dump(temp_json, f)
@@ -180,12 +183,16 @@ def test_xray(config: str, xray_path: str) -> bool:
         except:
             pass
             
-        proc.terminate()
-        proc.wait()
-        os.unlink(temp_cfg_path)
         return success
     except Exception:
         return False
+    finally:
+        if proc:
+            proc.terminate()
+            try: proc.wait(timeout=2)
+            except: proc.kill()
+        if temp_cfg_path and os.path.exists(temp_cfg_path):
+            os.unlink(temp_cfg_path)
 
 def collect_batch(sources: list[str], label: str) -> tuple[list[str], dict]:
     started_at = time.time()
@@ -243,13 +250,14 @@ def collect_batch(sources: list[str], label: str) -> tuple[list[str], dict]:
     }
     return all_configs, report
 
-def scan_tcp_batch(configs: list[str], workers: int, target_count: int) -> list[str]:
-    print(f"\nScanning {len(configs)} proxies for TCP liveness...")
+def scan_batch(configs: list[str], workers: int, target_count: int, test_func, test_name: str) -> list[str]:
+    print(f"\nScanning {len(configs)} proxies for {test_name}...")
     alive = []
+    
     random.shuffle(configs)
     
     with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
-        futures = {executor.submit(test_tcp, c): c for c in configs}
+        futures = {executor.submit(test_func, c): c for c in configs}
         for i, future in enumerate(concurrent.futures.as_completed(futures)):
             config = futures[future]
             if future.result():
@@ -260,33 +268,8 @@ def scan_tcp_batch(configs: list[str], workers: int, target_count: int) -> list[
                 for f in futures: f.cancel()
                 break
                 
-    print(f"Found {len(alive)} alive proxies.")
+    print(f"Found {len(alive)} alive proxies after {test_name}.")
     return alive
-
-def scan_xray_batch(configs: list[str], workers: int, target_count: int) -> list[str]:
-    print(f"\nScanning {len(configs)} alive proxies for Xray health...")
-    premium = []
-    random.shuffle(configs)
-    
-    xray_exe = os.path.join("xray-core", "xray.exe") if os.name == 'nt' else os.path.join("xray-core", "xray")
-    if not os.path.exists(xray_exe):
-        print("Xray not found! Falling back to returning all TCP-alive proxies.")
-        return configs
-
-    with concurrent.futures.ThreadPoolExecutor(max_workers=max(1, workers//2)) as executor:
-        futures = {executor.submit(test_xray, c, xray_exe): c for c in configs}
-        for i, future in enumerate(concurrent.futures.as_completed(futures)):
-            config = futures[future]
-            if future.result():
-                premium.append(config)
-            if (i+1) % 100 == 0:
-                print(f"  └─ Checked {i+1}/{len(configs)} | Premium: {len(premium)}")
-            if target_count > 0 and len(premium) >= target_count:
-                for f in futures: f.cancel()
-                break
-                
-    print(f"Found {len(premium)} premium (Xray-alive) proxies.")
-    return premium
 
 def main():
     os.makedirs(REPORT_DIR, exist_ok=True)
@@ -295,20 +278,18 @@ def main():
     featured_sources, full_sources = load_sources()
     print(f"Loaded {len(featured_sources)} featured sources, {len(full_sources)} total sources.\n")
 
-    # 1. Full Collection & TCP Scan
     full_configs, full_report = collect_batch(full_sources, "full")
     with open(os.path.join(REPORT_DIR, "full.json"), "w", encoding="utf-8") as f:
         json.dump(full_report, f, indent=2, ensure_ascii=False)
         
     alive_full = []
     if len(full_configs) > 0:
-        alive_full = scan_tcp_batch(full_configs, workers, 0)
+        alive_full = scan_batch(full_configs, workers, 0, test_tcp, "TCP Liveness")
         alive_full_sorted = sort_configs_by_protocol(alive_full)
         with open(OUTPUT_FULL, "w", encoding="utf-8") as f:
             f.write("\n".join(alive_full_sorted))
         print(f"→ {OUTPUT_FULL} ({len(alive_full_sorted)} alive configs)")
 
-    # 2. 10K from Alive Full
     if len(alive_full) > 0:
         random.shuffle(alive_full)
         alive_10k = alive_full[:10000]
@@ -317,7 +298,6 @@ def main():
             f.write("\n".join(alive_10k_sorted))
         print(f"→ {OUTPUT_10K} ({len(alive_10k_sorted)} configs)")
 
-        # 3. 5K from 10K
         random.shuffle(alive_10k)
         alive_5k = alive_10k[:5000]
         alive_5k_sorted = sort_configs_by_protocol(alive_5k)
@@ -325,20 +305,24 @@ def main():
             f.write("\n".join(alive_5k_sorted))
         print(f"→ {OUTPUT_5K} ({len(alive_5k_sorted)} configs)")
 
-    # 4. Featured (Starred Sources -> TCP -> Xray)
     if len(featured_sources) > 0:
         featured_configs, featured_report = collect_batch(featured_sources, "featured")
         with open(os.path.join(REPORT_DIR, "featured.json"), "w", encoding="utf-8") as f:
             json.dump(featured_report, f, indent=2, ensure_ascii=False)
             
         if len(featured_configs) > 0:
-            alive_featured = scan_tcp_batch(featured_configs, workers, 0)
-            if len(alive_featured) > 0:
-                premium = scan_xray_batch(alive_featured, workers, 2000)
-                premium_sorted = sort_configs_by_protocol(premium)
-                with open(OUTPUT_FEATURED, "w", encoding="utf-8") as f:
-                    f.write("\n".join(premium_sorted))
-                print(f"→ {OUTPUT_FEATURED} ({len(premium_sorted)} premium configs)")
+            xray_exe = os.path.join("xray-core", "xray.exe") if os.name == 'nt' else os.path.join("xray-core", "xray")
+            
+            if os.path.exists(xray_exe):
+                alive_featured = scan_batch(featured_configs, workers, 0, test_tcp, "TCP Liveness")
+                if len(alive_featured) > 0:
+                    premium = scan_batch(alive_featured, max(1, workers//2), 2000, lambda c: test_xray(c, xray_exe), "Xray Health")
+                    premium_sorted = sort_configs_by_protocol(premium)
+                    with open(OUTPUT_FEATURED, "w", encoding="utf-8") as f:
+                        f.write("\n".join(premium_sorted))
+                    print(f"→ {OUTPUT_FEATURED} ({len(premium_sorted)} premium configs)")
+            else:
+                print("Xray executable not found! Cannot process featured list.")
 
     print("\n" + "=" * 60)
     print("Done.")
