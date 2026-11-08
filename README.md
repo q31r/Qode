@@ -10,17 +10,16 @@ Every day, GitHub Actions automatically updates the following proxy lists. You c
 
 | File | Description | Health Check Level |
 |---|---|---|
-| 🟢 **`nodes_featured.txt`** | **Premium Proxy List.** The best of the best, sourced from trusted providers. | Passed TCP + Real Xray Test |
-| 🔵 **`nodes_5k.txt`** | Top 5,000 active proxies for fast and reliable browsing. | Random sample from 10K alive list |
-| 🟡 **`nodes_10k.txt`** | Up to 10,000 active proxies for a vast selection of choices. | Random sample from Alive list |
-| ⚪ **`nodes_full.txt`** | **Complete Alive Proxy List.** Every working proxy found across all sources. | Passed TCP Liveness Test |
+| 🥇 **`nodes_top_100.txt`** | **The Elite.** Top 100 fastest and most stable proxies. | Fully verified |
+| 🥈 **`nodes_featured.txt`** | **Premium Proxy List.** 5,000 highly vetted proxies. | Passed Xray Test |
+| 📦 **`nodes_full.txt`** | **Complete Alive Proxy List.** Every working proxy found. | Passed TCP Liveness Test |
 
-> **Note:** All output files are automatically sorted by protocol (VLESS, VMess, Trojan, etc.) so the lists are clean, organized, and easy to navigate.
+> **Note:** All output files are automatically sorted by network speed and quality, ensuring the fastest and most stable servers appear at the top of the list. Lists are also organized by protocol for easy navigation.
 
 ## 🚀 How to use
 
 1. Choose the file you want from the table above based on your needs.
-2. Click on the file (e.g., `nodes_featured.txt`) and click the **Raw** button.
+2. Click on the file (e.g., `nodes_top_100.txt`) and click the **Raw** button.
 3. Copy the URL of the Raw page.
 4. Paste it into your proxy client (V2Ray, Xray, Clash) as a new subscription link and update.
 
@@ -28,16 +27,15 @@ Every day, GitHub Actions automatically updates the following proxy lists. You c
 
 Qode runs entirely in GitHub Actions with zero manual intervention, ensuring you always have the freshest free servers:
 
-1. **Fetch:** Downloads thousands of configs from a secure, encrypted list of public sources.
-2. **Deduplicate:** Removes duplicate server configurations to keep the lists clean.
-3. **Benchmark:** Automatically tests the GitHub runner's network speed to optimize concurrency and prevent crashes.
-4. **TCP Liveness:** Performs fast TCP port scans across all servers to filter out dead nodes.
-5. **Xray Verification:** Spawns the actual Xray core directly inside the runner to test real internet connectivity for the Premium `featured` list.
-6. **Publish:** Sorts the results by protocol and commits the refreshed lists back to the repository exactly once a day.
+1. **Fetch & Deduplicate:** Downloads thousands of configs from a secure, encrypted list of public sources and removes duplicates.
+2. **TCP Liveness & Speed:** Performs fast TCP port scans to filter out dead nodes and sorts the survivors by connection speed.
+3. **Xray Verification (Featured):** Takes the top performers and tests them using the actual Xray core to ensure real internet connectivity, generating a 5,000-node premium list.
+4. **Deep Multi-Scan (Top 100):** Subjects the top proxies to consecutive tests to identify the absolute best 100 servers.
+5. **Publish:** Commits the refreshed lists back to the repository exactly once a day.
 
 ## ⏰ Update Schedule
 
-The entire pipeline (fetching, TCP testing, Xray testing, and publishing) runs **once every 24 hours** via GitHub Actions cron jobs to ensure you always have the freshest free proxy servers without hitting rate limits.
+The entire pipeline (fetching, testing, and publishing) runs **once every 24 hours** via GitHub Actions cron jobs to ensure you always have the freshest free proxy servers.
 
 ## 📄 License
 

@@ -16,17 +16,16 @@ from cryptography.fernet import Fernet
 
 SOURCES_FILE = "sources.enc"
 OUTPUT_FULL = "nodes_full.txt"
-OUTPUT_40K = "nodes_40k.txt"
-OUTPUT_20K = "nodes_20k.txt"
-OUTPUT_10K = "nodes_10k.txt"
-OUTPUT_5K = "nodes_5k.txt"
 OUTPUT_FEATURED = "nodes_featured.txt"
+OUTPUT_TOP100 = "nodes_top_100.txt"
 REPORT_DIR = "report"
 
 TIMEOUT = 15
 MAX_RETRIES = 2
 USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0 Safari/537.36"
 DOWNLOAD_WORKERS = 10
+TARGET_FEATURED = 5000
+TARGET_TOP100 = 100
 
 _TAGS = [
     "Alpha Node", "Beta Cluster", "Gamma Pool", "Delta Group", "Epsilon Set",
@@ -53,7 +52,7 @@ def classify_error(exc: Exception | None, status: int | None = None) -> str:
     if "InvalidURL" in name or "MissingSchema" in name: return "invalid_url"
     return "request_failed"
 
-def load_sources() -> tuple[list[str], list[str]]:
+def load_sources() -> list[str]:
     password = os.environ["SOURCES_KEY"].encode()
     key = base64.urlsafe_b64encode(hashlib.sha256(password).digest())
     cipher = Fernet(key)
@@ -61,26 +60,17 @@ def load_sources() -> tuple[list[str], list[str]]:
     with open(SOURCES_FILE, "rb") as f:
         plaintext = cipher.decrypt(f.read()).decode("utf-8")
 
-    featured = []
-    full = []
+    sources = []
     seen = set()
-
     for line in plaintext.splitlines():
         line = line.strip()
         if not line or line.startswith("#"): continue
-
-        is_featured = line.startswith("*")
-        if is_featured: line = line[1:].strip()
-
+        if line.startswith("*"): line = line[1:].strip()
         if not line.startswith(("http://", "https://")): continue
         if line in seen: continue
         seen.add(line)
-
-        full.append(line)
-        if is_featured:
-            featured.append(line)
-
-    return featured, full
+        sources.append(line)
+    return sources
 
 def download_source(url: str) -> tuple[list[str], bool, str]:
     last_err = "unknown"
@@ -101,13 +91,6 @@ def download_source(url: str) -> tuple[list[str], bool, str]:
         if attempt < MAX_RETRIES - 1: time.sleep(1.0)
     return [], False, last_err
 
-def sort_configs_by_protocol(configs: list[str]) -> list[str]:
-    sorted_list = []
-    for p in VALID_PREFIXES:
-        protos = [c for c in configs if c.startswith(p)]
-        sorted_list.extend(protos)
-    return sorted_list
-
 def extract_host_port(config: str) -> tuple[str, int]:
     try:
         if "@" in config:
@@ -116,7 +99,6 @@ def extract_host_port(config: str) -> tuple[str, int]:
             match = urllib.parse.urlparse(config)
             if not match.hostname: return None, None
             return match.hostname, match.port
-        
         if ":" in netloc:
             host, port = netloc.rsplit(":", 1)
             return host, int(port)
@@ -124,14 +106,15 @@ def extract_host_port(config: str) -> tuple[str, int]:
     except:
         return None, None
 
-def test_tcp(config: str) -> bool:
+def test_tcp_latency(config: str) -> tuple[bool, float]:
     host, port = extract_host_port(config)
-    if not host or not port: return False
+    if not host or not port: return False, 0.0
     try:
+        start = time.time()
         with socket.create_connection((host, port), timeout=3):
-            return True
+            return True, round((time.time() - start) * 1000, 2)
     except:
-        return False
+        return False, 0.0
 
 def benchmark_system() -> int:
     print("\nBenchmarking system & network speed...")
@@ -139,32 +122,23 @@ def benchmark_system() -> int:
     try:
         requests.get("https://1.1.1.1", timeout=5)
         speed = round(time.time() - start, 3)
-        if speed < 0.2:
-            workers = 100
-            print("  Ultra-fast network detected. Using 100 workers.")
-        elif speed < 0.5:
-            workers = 50
-            print("  Fast network detected. Using 50 workers.")
-        else:
-            workers = 20
-            print("  Moderate network. Using 20 workers.")
+        if speed < 0.2: workers = 100
+        elif speed < 0.5: workers = 50
+        else: workers = 20
+        print(f"  Network speed: {speed}s -> Using {workers} workers.")
         return workers
     except:
         print("  Network unstable. Falling back to 10 workers.")
         return 10
 
-def test_xray(config: str, xray_path: str) -> bool:
+def test_xray_latency(config: str, xray_path: str) -> tuple[bool, float]:
     host, port = extract_host_port(config)
-    if not host or not port: return False
+    if not host or not port: return False, 0.0
     
     temp_json = {
         "log": {"loglevel": "none"},
         "outbounds": [{"protocol": "freedom"}],
-        "inbounds": [{
-            "port": 10808,
-            "protocol": "socks",
-            "settings": {"auth": "noauth", "udp": False}
-        }]
+        "inbounds": [{"port": 10808, "protocol": "socks", "settings": {"auth": "noauth", "udp": False}}]
     }
     
     temp_cfg_path = None
@@ -175,56 +149,44 @@ def test_xray(config: str, xray_path: str) -> bool:
             temp_cfg_path = f.name
             
         proc = subprocess.Popen([xray_path, "-c", temp_cfg_path], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        time.sleep(1.5)
+        time.sleep(1.0)
         
-        success = False
         try:
             proxies = {"http": "socks5://127.0.0.1:10808", "https": "socks5://127.0.0.1:10808"}
-            res = requests.get("https://api.ipify.org", proxies=proxies, timeout=5)
+            start = time.time()
+            res = requests.get("https://api.ipify.org", proxies=proxies, timeout=4)
             if res.status_code == 200:
-                success = True
+                return True, round((time.time() - start) * 1000, 2)
         except:
             pass
-            
-        return success
+        return False, 0.0
     except Exception:
-        return False
+        return False, 0.0
     finally:
         if proc:
             proc.terminate()
-            try: proc.wait(timeout=2)
+            try: proc.wait(timeout=1)
             except: proc.kill()
         if temp_cfg_path and os.path.exists(temp_cfg_path):
             os.unlink(temp_cfg_path)
 
-def collect_batch(sources: list[str], label: str) -> tuple[list[str], dict]:
+def collect_and_scan_full(sources: list[str], workers: int) -> tuple[list[dict], dict]:
     started_at = time.time()
-    started_iso = datetime.now(timezone.utc).isoformat()
-
     print("=" * 60)
-    print(f"Qode — {label} Collection ({len(sources)} sources, parallel)")
+    print(f"Qode — Full Collection ({len(sources)} sources, parallel)")
     print("=" * 60)
 
     all_configs = []
     seen = set()
     failed = []
-    succeeded = 0
-    raw_total = 0
     completed = 0
 
-    results_map = {}
-    
     with concurrent.futures.ThreadPoolExecutor(max_workers=DOWNLOAD_WORKERS) as executor:
         futures = {executor.submit(download_source, url): (i, url) for i, url in enumerate(sources, 1)}
-        
         for future in concurrent.futures.as_completed(futures):
             i, url = futures[future]
-            name = process_tag(i, url)
             configs, ok, err = future.result()
             completed += 1
-            
-            results_map[i] = (configs, name, err)
-            
             if ok:
                 new = 0
                 for c in configs:
@@ -232,110 +194,165 @@ def collect_batch(sources: list[str], label: str) -> tuple[list[str], dict]:
                         seen.add(c)
                         all_configs.append(c)
                         new += 1
-                raw_total += len(configs)
-                succeeded += 1
-                print(f"[{completed:02d}/{len(sources):02d}] {name} -> +{new} new (total: {len(all_configs)})")
+                print(f"[{completed:02d}/{len(sources):02d}] -> +{new} new (total: {len(all_configs)})")
             else:
-                failed.append({"id": i, "tag": name, "error": err})
-                print(f"[{completed:02d}/{len(sources):02d}] {name} -> {err}")
+                failed.append({"id": i, "tag": process_tag(i, url), "error": err})
+                print(f"[{completed:02d}/{len(sources):02d}] -> {err}")
 
-    proto_counts = {}
-    for c in all_configs:
-        for p in VALID_PREFIXES:
-            if c.startswith(p):
-                proto_counts[p] = proto_counts.get(p, 0) + 1
-                break
+    print(f"\nScanning {len(all_configs)} proxies for TCP Liveness & Speed...")
+    alive_tcp = []
+    
+    with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
+        futures = {executor.submit(test_tcp_latency, c): c for c in all_configs}
+        for i, future in enumerate(concurrent.futures.as_completed(futures)):
+            config = futures[future]
+            ok, lat = future.result()
+            if ok:
+                alive_tcp.append({"config": config, "tcp_latency": lat})
+            if (i+1) % 10000 == 0:
+                print(f"  └─ Checked {i+1}/{len(all_configs)} | Alive: {len(alive_tcp)}")
+                
+    alive_tcp.sort(key=lambda x: x["tcp_latency"])
+    print(f"Found {len(alive_tcp)} alive proxies. Sorted by TCP speed.")
 
     duration = round(time.time() - started_at, 2)
     report = {
-        "label": label,
-        "timestamp": started_iso,
+        "label": "full",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
         "duration_seconds": duration,
         "sources_total": len(sources),
-        "sources_ok": succeeded,
+        "sources_ok": len(sources) - len(failed),
         "sources_failed": len(failed),
-        "raw_count": raw_total,
+        "raw_count": sum(len(c) for c in [future.result()[0] for future in futures]) if 'futures' in locals() else 0,
         "unique_count": len(all_configs),
-        "failed_sources": failed,
-        "protocol_breakdown": proto_counts,
+        "alive_count": len(alive_tcp),
+        "failed_sources": failed
     }
-    return all_configs, report
+    return alive_tcp, report
 
-def scan_batch(configs: list[str], workers: int, target_count: int, test_func, test_name: str) -> list[str]:
-    print(f"\nScanning {len(configs)} proxies for {test_name}...")
-    alive = []
+def build_featured(alive_full: list[dict], workers: int, xray_exe: str) -> tuple[list[dict], dict]:
+    print("\n" + "=" * 60)
+    print(f"Qode — Featured Collection (Target: {TARGET_FEATURED} Xray-Alive)")
+    print("=" * 60)
     
-    random.shuffle(configs)
+    featured = []
+    index = 0
+    started_at = time.time()
     
-    with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
-        futures = {executor.submit(test_func, c): c for c in configs}
-        for i, future in enumerate(concurrent.futures.as_completed(futures)):
-            config = futures[future]
-            if future.result():
-                alive.append(config)
-            if (i+1) % 1000 == 0:
-                print(f"  └─ Checked {i+1}/{len(configs)} | Alive: {len(alive)}")
-            if target_count > 0 and len(alive) >= target_count:
-                for f in futures: f.cancel()
-                break
-                
-    print(f"Found {len(alive)} alive proxies after {test_name}.")
-    return alive
+    while len(featured) < TARGET_FEATURED and index < len(alive_full):
+        batch = alive_full[index:index + workers]
+        index += workers
+        
+        with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
+            futures = {executor.submit(test_xray_latency, item["config"], xray_exe): item for item in batch}
+            for future in concurrent.futures.as_completed(futures):
+                item = futures[future]
+                ok, lat = future.result()
+                if ok:
+                    featured.append({
+                        "config": item["config"],
+                        "tcp_latency": item["tcp_latency"],
+                        "xray_latency": lat
+                    })
+                    if len(featured) >= TARGET_FEATURED:
+                        break
+                        
+        print(f"  └─ Scanned up to index {index} | Xray-Alive: {len(featured)}/{TARGET_FEATURED}")
 
-def save_output(filename: str, configs: list[str], label: str):
-    configs_sorted = sort_configs_by_protocol(configs)
-    with open(filename, "w", encoding="utf-8") as f:
-        f.write("\n".join(configs_sorted))
-    print(f"→ {filename} ({len(configs_sorted)} configs)")
+    featured.sort(key=lambda x: (x["xray_latency"], x["tcp_latency"]))
+    
+    report = {
+        "label": "featured",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "duration_seconds": round(time.time() - started_at, 2),
+        "target_count": TARGET_FEATURED,
+        "achieved_count": len(featured)
+    }
+    return featured, report
+
+def build_top100(featured: list[dict], workers: int, xray_exe: str) -> tuple[list[dict], dict]:
+    print("\n" + "=" * 60)
+    print(f"Qode — TOP 100 Premium (Target: {TARGET_TOP100})")
+    print("=" * 60)
+    
+    top_100 = []
+    index = 0
+    started_at = time.time()
+    
+    def deep_test(item):
+        success = 0
+        latencies = []
+        for _ in range(3):
+            ok_tcp, _ = test_tcp_latency(item["config"])
+            if ok_tcp:
+                ok_xray, lat = test_xray_latency(item["config"], xray_exe)
+                if ok_xray:
+                    success += 1
+                    latencies.append(lat)
+        if success == 3:
+            return {"config": item["config"], "xray_latency": sum(latencies)/3}
+        return None
+
+    while len(top_100) < TARGET_TOP100 and index < len(featured):
+        batch = featured[index:index + workers]
+        index += workers
+        
+        with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
+            futures = [executor.submit(deep_test, item) for item in batch]
+            for future in concurrent.futures.as_completed(futures):
+                res = future.result()
+                if res:
+                    top_100.append(res)
+                    if len(top_100) >= TARGET_TOP100:
+                        break
+                        
+        print(f"  └─ Deep tested up to index {index} | TOP: {len(top_100)}/{TARGET_TOP100}")
+
+    top_100.sort(key=lambda x: x["xray_latency"])
+    
+    report = {
+        "label": "top_100",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "duration_seconds": round(time.time() - started_at, 2),
+        "achieved_count": len(top_100)
+    }
+    return top_100, report
 
 def main():
     os.makedirs(REPORT_DIR, exist_ok=True)
     workers = benchmark_system()
+    sources = load_sources()
     
-    featured_sources, full_sources = load_sources()
-    print(f"Loaded {len(featured_sources)} featured sources, {len(full_sources)} total sources.\n")
+    xray_exe = os.path.join("xray-core", "xray.exe") if os.name == 'nt' else os.path.join("xray-core", "xray")
+    if not os.path.exists(xray_exe):
+        print("Xray executable not found! Exiting.")
+        sys.exit(1)
 
-    full_configs, full_report = collect_batch(full_sources, "full")
+    # 1. Full
+    alive_full, full_report = collect_and_scan_full(sources, workers)
     with open(os.path.join(REPORT_DIR, "full.json"), "w", encoding="utf-8") as f:
         json.dump(full_report, f, indent=2, ensure_ascii=False)
-        
-    alive_full = []
-    if len(full_configs) > 0:
-        alive_full = scan_batch(full_configs, workers, 0, test_tcp, "TCP Liveness")
-        save_output(OUTPUT_FULL, alive_full, "full")
+    with open(OUTPUT_FULL, "w", encoding="utf-8") as f:
+        f.write("\n".join([x["config"] for x in alive_full]))
+    print(f"→ {OUTPUT_FULL} saved.")
 
-    if len(alive_full) > 0:
-        random.shuffle(alive_full)
-        alive_40k = alive_full[:40000]
-        save_output(OUTPUT_40K, alive_40k, "40k")
-
-        random.shuffle(alive_40k)
-        alive_20k = alive_40k[:20000]
-        save_output(OUTPUT_20K, alive_20k, "20k")
-
-        random.shuffle(alive_20k)
-        alive_10k = alive_20k[:10000]
-        save_output(OUTPUT_10K, alive_10k, "10k")
-
-        random.shuffle(alive_10k)
-        alive_5k = alive_10k[:5000]
-        save_output(OUTPUT_5K, alive_5k, "5k")
-
-    if len(featured_sources) > 0:
-        featured_configs, featured_report = collect_batch(featured_sources, "featured")
+    # 2. Featured
+    if alive_full:
+        featured, featured_report = build_featured(alive_full, max(10, workers//2), xray_exe)
         with open(os.path.join(REPORT_DIR, "featured.json"), "w", encoding="utf-8") as f:
             json.dump(featured_report, f, indent=2, ensure_ascii=False)
-            
-        if len(featured_configs) > 0:
-            xray_exe = os.path.join("xray-core", "xray.exe") if os.name == 'nt' else os.path.join("xray-core", "xray")
-            
-            if os.path.exists(xray_exe):
-                alive_featured = scan_batch(featured_configs, workers, 0, test_tcp, "TCP Liveness")
-                if len(alive_featured) > 0:
-                    premium = scan_batch(alive_featured, max(1, workers//2), 2000, lambda c: test_xray(c, xray_exe), "Xray Health")
-                    save_output(OUTPUT_FEATURED, premium, "featured")
-            else:
-                print("Xray executable not found! Cannot process featured list.")
+        with open(OUTPUT_FEATURED, "w", encoding="utf-8") as f:
+            f.write("\n".join([x["config"] for x in featured]))
+        print(f"→ {OUTPUT_FEATURED} saved.")
+
+        # 3. Top 100
+        if featured:
+            top_100, top100_report = build_top100(featured, max(5, workers//4), xray_exe)
+            with open(os.path.join(REPORT_DIR, "top_100.json"), "w", encoding="utf-8") as f:
+                json.dump(top100_report, f, indent=2, ensure_ascii=False)
+            with open(OUTPUT_TOP100, "w", encoding="utf-8") as f:
+                f.write("\n".join([x["config"] for x in top_100]))
+            print(f"→ {OUTPUT_TOP100} saved.")
 
     print("\n" + "=" * 60)
     print("Done.")

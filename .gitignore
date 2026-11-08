@@ -1,14 +1,12 @@
 sources.txt
 encrypt_sources.py
 generate_password.py
-test.py
 project-summary.txt
 todo.txt
 
 .env
 .env.*
 
-test/
 analyzer.py
 ratings.json
 
