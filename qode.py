@@ -24,6 +24,7 @@ REPORT_DIR = "report"
 TIMEOUT = 15
 MAX_RETRIES = 2
 USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0 Safari/537.36"
+DOWNLOAD_WORKERS = 10
 
 _TAGS = [
     "Alpha Node", "Beta Cluster", "Gamma Pool", "Delta Group", "Epsilon Set",
@@ -199,7 +200,7 @@ def collect_batch(sources: list[str], label: str) -> tuple[list[str], dict]:
     started_iso = datetime.now(timezone.utc).isoformat()
 
     print("=" * 60)
-    print(f"Qode — {label} Collection ({len(sources)} sources)")
+    print(f"Qode — {label} Collection ({len(sources)} sources, parallel)")
     print("=" * 60)
 
     all_configs = []
@@ -207,26 +208,34 @@ def collect_batch(sources: list[str], label: str) -> tuple[list[str], dict]:
     failed = []
     succeeded = 0
     raw_total = 0
+    completed = 0
 
-    for i, url in enumerate(sources, 1):
-        name = process_tag(i, url)
-        print(f"[{i:02d}/{len(sources):02d}] {name} downloading...", end=" ", flush=True)
-
-        configs, ok, err = download_source(url)
-
-        if ok:
-            raw_total += len(configs)
-            new = 0
-            for c in configs:
-                if c not in seen:
-                    seen.add(c)
-                    all_configs.append(c)
-                    new += 1
-            succeeded += 1
-            print(f"+{new} new (total: {len(all_configs)})")
-        else:
-            failed.append({"id": i, "tag": name, "error": err})
-            print(f"{err}")
+    results_map = {}
+    
+    with concurrent.futures.ThreadPoolExecutor(max_workers=DOWNLOAD_WORKERS) as executor:
+        futures = {executor.submit(download_source, url): (i, url) for i, url in enumerate(sources, 1)}
+        
+        for future in concurrent.futures.as_completed(futures):
+            i, url = futures[future]
+            name = process_tag(i, url)
+            configs, ok, err = future.result()
+            completed += 1
+            
+            results_map[i] = (configs, name, err)
+            
+            if ok:
+                new = 0
+                for c in configs:
+                    if c not in seen:
+                        seen.add(c)
+                        all_configs.append(c)
+                        new += 1
+                raw_total += len(configs)
+                succeeded += 1
+                print(f"[{completed:02d}/{len(sources):02d}] {name} -> +{new} new (total: {len(all_configs)})")
+            else:
+                failed.append({"id": i, "tag": name, "error": err})
+                print(f"[{completed:02d}/{len(sources):02d}] {name} -> {err}")
 
     proto_counts = {}
     for c in all_configs:
