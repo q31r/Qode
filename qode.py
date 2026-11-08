@@ -17,15 +17,12 @@ from cryptography.fernet import Fernet
 SOURCES_FILE = "sources.enc"
 OUTPUT_FULL = "nodes_full.txt"
 OUTPUT_FEATURED = "nodes_featured.txt"
-OUTPUT_TOP100 = "nodes_top_100.txt"
 REPORT_DIR = "report"
 
 TIMEOUT = 15
 MAX_RETRIES = 2
 USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0 Safari/537.36"
 DOWNLOAD_WORKERS = 10
-TARGET_FEATURED = 5000
-TARGET_TOP100 = 100
 XRAY_WORKERS = 5
 
 _TAGS = [
@@ -237,32 +234,27 @@ def collect_and_scan_full(sources: list[str], workers: int) -> tuple[list[dict],
 
 def build_featured(alive_full: list[dict], workers: int, xray_exe: str) -> tuple[list[dict], dict]:
     print("\n" + "=" * 60)
-    print(f"Qode — Featured Collection (Target: {TARGET_FEATURED} Xray-Alive)")
+    print("Qode — Featured Collection (Scanning all TCP-Alive)")
     print("=" * 60)
     
     featured = []
-    index = 0
     started_at = time.time()
     
-    while len(featured) < TARGET_FEATURED and index < len(alive_full):
-        batch = alive_full[index:index + workers]
-        index += workers
+    with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
+        futures = {executor.submit(test_xray_latency, item["config"], xray_exe): item for item in alive_full}
         
-        with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
-            futures = {executor.submit(test_xray_latency, item["config"], xray_exe): item for item in batch}
-            for future in concurrent.futures.as_completed(futures):
-                item = futures[future]
-                ok, lat = future.result()
-                if ok:
-                    featured.append({
-                        "config": item["config"],
-                        "tcp_latency": item["tcp_latency"],
-                        "xray_latency": lat
-                    })
-                    if len(featured) >= TARGET_FEATURED:
-                        break
-                        
-        print(f"  └─ Scanned up to index {index} | Xray-Alive: {len(featured)}/{TARGET_FEATURED}")
+        for i, future in enumerate(concurrent.futures.as_completed(futures)):
+            item = futures[future]
+            ok, lat = future.result()
+            if ok:
+                featured.append({
+                    "config": item["config"],
+                    "tcp_latency": item["tcp_latency"],
+                    "xray_latency": lat
+                })
+                
+            if (i+1) % 1000 == 0:
+                print(f"  └─ Scanned {i+1}/{len(alive_full)} | Xray-Alive: {len(featured)}")
 
     featured.sort(key=lambda x: (x["xray_latency"], x["tcp_latency"]))
     
@@ -270,58 +262,10 @@ def build_featured(alive_full: list[dict], workers: int, xray_exe: str) -> tuple
         "label": "featured",
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "duration_seconds": round(time.time() - started_at, 2),
-        "target_count": TARGET_FEATURED,
+        "total_scanned": len(alive_full),
         "achieved_count": len(featured)
     }
     return featured, report
-
-def build_top100(featured: list[dict], workers: int, xray_exe: str) -> tuple[list[dict], dict]:
-    print("\n" + "=" * 60)
-    print(f"Qode — TOP 100 Premium (Target: {TARGET_TOP100})")
-    print("=" * 60)
-    
-    top_100 = []
-    index = 0
-    started_at = time.time()
-    
-    def deep_test(item):
-        success = 0
-        latencies = []
-        for _ in range(3):
-            ok_tcp, _ = test_tcp_latency(item["config"])
-            if ok_tcp:
-                ok_xray, lat = test_xray_latency(item["config"], xray_exe)
-                if ok_xray:
-                    success += 1
-                    latencies.append(lat)
-        if success == 3:
-            return {"config": item["config"], "xray_latency": sum(latencies)/3}
-        return None
-
-    while len(top_100) < TARGET_TOP100 and index < len(featured):
-        batch = featured[index:index + workers]
-        index += workers
-        
-        with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
-            futures = [executor.submit(deep_test, item) for item in batch]
-            for future in concurrent.futures.as_completed(futures):
-                res = future.result()
-                if res:
-                    top_100.append(res)
-                    if len(top_100) >= TARGET_TOP100:
-                        break
-                        
-        print(f"  └─ Deep tested up to index {index} | TOP: {len(top_100)}/{TARGET_TOP100}")
-
-    top_100.sort(key=lambda x: x["xray_latency"])
-    
-    report = {
-        "label": "top_100",
-        "timestamp": datetime.now(timezone.utc).isoformat(),
-        "duration_seconds": round(time.time() - started_at, 2),
-        "achieved_count": len(top_100)
-    }
-    return top_100, report
 
 def main():
     os.makedirs(REPORT_DIR, exist_ok=True)
@@ -347,14 +291,6 @@ def main():
         with open(OUTPUT_FEATURED, "w", encoding="utf-8") as f:
             f.write("\n".join([x["config"] for x in featured]))
         print(f"→ {OUTPUT_FEATURED} saved.")
-
-        if featured:
-            top_100, top100_report = build_top100(featured, max(2, XRAY_WORKERS//2), xray_exe)
-            with open(os.path.join(REPORT_DIR, "top_100.json"), "w", encoding="utf-8") as f:
-                json.dump(top100_report, f, indent=2, ensure_ascii=False)
-            with open(OUTPUT_TOP100, "w", encoding="utf-8") as f:
-                f.write("\n".join([x["config"] for x in top_100]))
-            print(f"→ {OUTPUT_TOP100} saved.")
 
     print("\n" + "=" * 60)
     print("Done.")

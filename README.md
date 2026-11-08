@@ -10,16 +10,15 @@ Every day, GitHub Actions automatically updates the following proxy lists. You c
 
 | File | Description | Health Check Level |
 |---|---|---|
-| 🥇 **`nodes_top_100.txt`** | **The Elite.** Top 100 fastest and most stable proxies. | Fully verified |
-| 🥈 **`nodes_featured.txt`** | **Premium Proxy List.** 5,000 highly vetted proxies. | Passed Xray Test |
-| 📦 **`nodes_full.txt`** | **Complete Alive Proxy List.** Every working proxy found. | Passed TCP Liveness Test |
+| ⭐ **`nodes_featured.txt`** | **Premium Proxy List.** All verified proxies that successfully passed real internet connectivity. | Passed Xray Test |
+| 📦 **`nodes_full.txt`** | **Complete Alive Proxy List.** Every working proxy found across all sources. | Passed TCP Liveness Test |
 
 > **Note:** All output files are automatically sorted by network speed and quality, ensuring the fastest and most stable servers appear at the top of the list. Lists are also organized by protocol for easy navigation.
 
 ## 🚀 How to use
 
 1. Choose the file you want from the table above based on your needs.
-2. Click on the file (e.g., `nodes_top_100.txt`) and click the **Raw** button.
+2. Click on the file (e.g., `nodes_featured.txt`) and click the **Raw** button.
 3. Copy the URL of the Raw page.
 4. Paste it into your proxy client (V2Ray, Xray, Clash) as a new subscription link and update.
 
@@ -29,9 +28,8 @@ Qode runs entirely in GitHub Actions with zero manual intervention, ensuring you
 
 1. **Fetch & Deduplicate:** Downloads thousands of configs from a secure, encrypted list of public sources and removes duplicates.
 2. **TCP Liveness & Speed:** Performs fast TCP port scans to filter out dead nodes and sorts the survivors by connection speed.
-3. **Xray Verification (Featured):** Takes the top performers and tests them using the actual Xray core to ensure real internet connectivity, generating a 5,000-node premium list.
-4. **Deep Multi-Scan (Top 100):** Subjects the top proxies to consecutive tests to identify the absolute best 100 servers.
-5. **Publish:** Commits the refreshed lists back to the repository exactly once a day.
+3. **Xray Verification (Featured):** Tests every alive proxy using the actual Xray core to ensure real internet connectivity, generating a highly vetted premium list.
+4. **Publish:** Commits the refreshed lists back to the repository exactly once a day.
 
 ## ⏰ Update Schedule
 
