@@ -1,0 +1,20 @@
+{
+  "label": "full",
+  "timestamp": "2026-11-08T12:46:17.726810+00:00",
+  "duration_seconds": 2.26,
+  "sources_total": 119,
+  "sources_ok": 119,
+  "sources_failed": 0,
+  "raw_count": 177210,
+  "unique_count": 149395,
+  "failed_sources": [],
+  "protocol_breakdown": {
+    "ss://": 32712,
+    "vmess://": 19111,
+    "trojan://": 11075,
+    "vless://": 81405,
+    "hysteria2://": 1062,
+    "hy2://": 110,
+    "socks5://": 3920
+  }
+}
