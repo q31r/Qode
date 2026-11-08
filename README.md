@@ -39,10 +39,6 @@ Qode runs entirely in GitHub Actions with zero manual intervention, ensuring you
 
 The entire pipeline (fetching, TCP testing, Xray testing, and publishing) runs **once every 24 hours** via GitHub Actions cron jobs to ensure you always have the freshest free proxy servers without hitting rate limits.
 
-## 📊 Reports
-
-Detailed JSON reports are generated daily inside the `report/` directory. They include download speeds, the number of working servers per protocol, and sanitized error logs to track the health of the sources.
-
 ## 📄 License
 
 MIT
