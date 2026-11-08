@@ -26,6 +26,7 @@ USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0 Safari/
 DOWNLOAD_WORKERS = 10
 TARGET_FEATURED = 5000
 TARGET_TOP100 = 100
+XRAY_WORKERS = 5
 
 _TAGS = [
     "Alpha Node", "Beta Cluster", "Gamma Pool", "Delta Group", "Epsilon Set",
@@ -135,10 +136,12 @@ def test_xray_latency(config: str, xray_path: str) -> tuple[bool, float]:
     host, port = extract_host_port(config)
     if not host or not port: return False, 0.0
     
+    socks_port = random.randint(20000, 60000)
+    
     temp_json = {
         "log": {"loglevel": "none"},
         "outbounds": [{"protocol": "freedom"}],
-        "inbounds": [{"port": 10808, "protocol": "socks", "settings": {"auth": "noauth", "udp": False}}]
+        "inbounds": [{"port": socks_port, "protocol": "socks", "settings": {"auth": "noauth", "udp": False}}]
     }
     
     temp_cfg_path = None
@@ -152,7 +155,7 @@ def test_xray_latency(config: str, xray_path: str) -> tuple[bool, float]:
         time.sleep(1.0)
         
         try:
-            proxies = {"http": "socks5://127.0.0.1:10808", "https": "socks5://127.0.0.1:10808"}
+            proxies = {"http": f"socks5://127.0.0.1:{socks_port}", "https": f"socks5://127.0.0.1:{socks_port}"}
             start = time.time()
             res = requests.get("https://api.ipify.org", proxies=proxies, timeout=4)
             if res.status_code == 200:
@@ -330,7 +333,6 @@ def main():
         print("Xray executable not found! Exiting.")
         sys.exit(1)
 
-    # 1. Full
     alive_full, full_report = collect_and_scan_full(sources, workers)
     with open(os.path.join(REPORT_DIR, "full.json"), "w", encoding="utf-8") as f:
         json.dump(full_report, f, indent=2, ensure_ascii=False)
@@ -338,18 +340,16 @@ def main():
         f.write("\n".join([x["config"] for x in alive_full]))
     print(f"→ {OUTPUT_FULL} saved.")
 
-    # 2. Featured
     if alive_full:
-        featured, featured_report = build_featured(alive_full, max(10, workers//2), xray_exe)
+        featured, featured_report = build_featured(alive_full, XRAY_WORKERS, xray_exe)
         with open(os.path.join(REPORT_DIR, "featured.json"), "w", encoding="utf-8") as f:
             json.dump(featured_report, f, indent=2, ensure_ascii=False)
         with open(OUTPUT_FEATURED, "w", encoding="utf-8") as f:
             f.write("\n".join([x["config"] for x in featured]))
         print(f"→ {OUTPUT_FEATURED} saved.")
 
-        # 3. Top 100
         if featured:
-            top_100, top100_report = build_top100(featured, max(5, workers//4), xray_exe)
+            top_100, top100_report = build_top100(featured, max(2, XRAY_WORKERS//2), xray_exe)
             with open(os.path.join(REPORT_DIR, "top_100.json"), "w", encoding="utf-8") as f:
                 json.dump(top100_report, f, indent=2, ensure_ascii=False)
             with open(OUTPUT_TOP100, "w", encoding="utf-8") as f:
