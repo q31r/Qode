@@ -16,6 +16,8 @@ from cryptography.fernet import Fernet
 
 SOURCES_FILE = "sources.enc"
 OUTPUT_FULL = "nodes_full.txt"
+OUTPUT_40K = "nodes_40k.txt"
+OUTPUT_20K = "nodes_20k.txt"
 OUTPUT_10K = "nodes_10k.txt"
 OUTPUT_5K = "nodes_5k.txt"
 OUTPUT_FEATURED = "nodes_featured.txt"
@@ -126,7 +128,7 @@ def test_tcp(config: str) -> bool:
     host, port = extract_host_port(config)
     if not host or not port: return False
     try:
-        with socket.create_connection((host, port), timeout=5):
+        with socket.create_connection((host, port), timeout=3):
             return True
     except:
         return False
@@ -280,6 +282,12 @@ def scan_batch(configs: list[str], workers: int, target_count: int, test_func, t
     print(f"Found {len(alive)} alive proxies after {test_name}.")
     return alive
 
+def save_output(filename: str, configs: list[str], label: str):
+    configs_sorted = sort_configs_by_protocol(configs)
+    with open(filename, "w", encoding="utf-8") as f:
+        f.write("\n".join(configs_sorted))
+    print(f"→ {filename} ({len(configs_sorted)} configs)")
+
 def main():
     os.makedirs(REPORT_DIR, exist_ok=True)
     workers = benchmark_system()
@@ -294,25 +302,24 @@ def main():
     alive_full = []
     if len(full_configs) > 0:
         alive_full = scan_batch(full_configs, workers, 0, test_tcp, "TCP Liveness")
-        alive_full_sorted = sort_configs_by_protocol(alive_full)
-        with open(OUTPUT_FULL, "w", encoding="utf-8") as f:
-            f.write("\n".join(alive_full_sorted))
-        print(f"→ {OUTPUT_FULL} ({len(alive_full_sorted)} alive configs)")
+        save_output(OUTPUT_FULL, alive_full, "full")
 
     if len(alive_full) > 0:
         random.shuffle(alive_full)
-        alive_10k = alive_full[:10000]
-        alive_10k_sorted = sort_configs_by_protocol(alive_10k)
-        with open(OUTPUT_10K, "w", encoding="utf-8") as f:
-            f.write("\n".join(alive_10k_sorted))
-        print(f"→ {OUTPUT_10K} ({len(alive_10k_sorted)} configs)")
+        alive_40k = alive_full[:40000]
+        save_output(OUTPUT_40K, alive_40k, "40k")
+
+        random.shuffle(alive_40k)
+        alive_20k = alive_40k[:20000]
+        save_output(OUTPUT_20K, alive_20k, "20k")
+
+        random.shuffle(alive_20k)
+        alive_10k = alive_20k[:10000]
+        save_output(OUTPUT_10K, alive_10k, "10k")
 
         random.shuffle(alive_10k)
         alive_5k = alive_10k[:5000]
-        alive_5k_sorted = sort_configs_by_protocol(alive_5k)
-        with open(OUTPUT_5K, "w", encoding="utf-8") as f:
-            f.write("\n".join(alive_5k_sorted))
-        print(f"→ {OUTPUT_5K} ({len(alive_5k_sorted)} configs)")
+        save_output(OUTPUT_5K, alive_5k, "5k")
 
     if len(featured_sources) > 0:
         featured_configs, featured_report = collect_batch(featured_sources, "featured")
@@ -326,10 +333,7 @@ def main():
                 alive_featured = scan_batch(featured_configs, workers, 0, test_tcp, "TCP Liveness")
                 if len(alive_featured) > 0:
                     premium = scan_batch(alive_featured, max(1, workers//2), 2000, lambda c: test_xray(c, xray_exe), "Xray Health")
-                    premium_sorted = sort_configs_by_protocol(premium)
-                    with open(OUTPUT_FEATURED, "w", encoding="utf-8") as f:
-                        f.write("\n".join(premium_sorted))
-                    print(f"→ {OUTPUT_FEATURED} ({len(premium_sorted)} premium configs)")
+                    save_output(OUTPUT_FEATURED, premium, "featured")
             else:
                 print("Xray executable not found! Cannot process featured list.")
 
