@@ -1,0 +1,12 @@
+{
+  "label": "full",
+  "timestamp": "2026-11-08T16:20:31.922714+00:00",
+  "duration_seconds": 1150.86,
+  "sources_total": 119,
+  "sources_ok": 119,
+  "sources_failed": 0,
+  "raw_count": 176946,
+  "unique_count": 150404,
+  "alive_count": 77678,
+  "failed_sources": []
+}
