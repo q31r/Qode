@@ -155,7 +155,7 @@ def test_xray_latency(config: str, xray_path: str) -> tuple[bool, float]:
         time.sleep(1.0)
         
         try:
-            proxies = {"http": f"socks5://127.0.0.1:{socks_port}", "https": f"socks5://127.0.0.1:{socks_port}"}
+            proxies = {"http": f"socks5h://127.0.0.1:{socks_port}", "https": f"socks5h://127.0.0.1:{socks_port}"}
             start = time.time()
             res = requests.get("https://api.ipify.org", proxies=proxies, timeout=4)
             if res.status_code == 200:
