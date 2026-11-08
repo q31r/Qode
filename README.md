@@ -12,7 +12,7 @@ Every day, GitHub Actions automatically updates the following proxy lists. You c
 |---|---|---|
 | 💎 **`nodes_curated.txt`** | **Hand-picked Premium List.** Raw configs from hand-picked and popular sources. | No scan (Direct raw) |
 | ⭐ **`nodes_featured.txt`** | **Verified Proxy List.** Proxies that successfully passed real internet connectivity. | Passed Xray Test |
-| 📦 **`nodes_full.txt`** | **Complete Alive Proxy List.** Every working proxy found across regular sources. | Passed TCP Liveness Test |
+| 📦 **`nodes_full.txt`** | **Complete Alive Proxy List.** Every working proxy found across all sources. | Passed TCP Liveness Test |
 
 > **Note:** All output files are automatically sorted by network speed and quality, ensuring the fastest and most stable servers appear at the top of the list. Lists are also organized by protocol for easy navigation.
 
@@ -29,7 +29,7 @@ Qode runs entirely in GitHub Actions with zero manual intervention, ensuring you
 
 1. **Fetch & Deduplicate:** Downloads thousands of configs from a secure, encrypted list of public sources and removes duplicates.
 2. **Curated Extraction:** Directly extracts and publishes configs from hand-picked and popular sources without any testing.
-3. **TCP Liveness & Speed:** Performs fast TCP port scans on regular sources to filter out dead nodes and sorts the survivors by connection speed.
+3. **TCP Liveness & Speed:** Performs fast TCP port scans across all sources to filter out dead nodes and sorts the survivors by connection speed.
 4. **Xray Verification (Featured):** Tests every alive proxy using the actual Xray core to ensure real internet connectivity, generating a highly vetted premium list.
 5. **Publish:** Commits the refreshed lists back to the repository exactly once a day.
 

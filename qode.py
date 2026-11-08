@@ -59,27 +59,26 @@ def load_sources() -> tuple[list[str], list[str]]:
     with open(SOURCES_FILE, "rb") as f:
         plaintext = cipher.decrypt(f.read()).decode("utf-8")
 
-    featured = []
-    regular = []
+    all_sources = []
+    curated_sources = []
     seen = set()
 
     for line in plaintext.splitlines():
         line = line.strip()
         if not line or line.startswith("#"): continue
         
-        is_featured = line.startswith("*")
-        if is_featured: line = line[1:].strip()
+        is_curated = line.startswith("*")
+        if is_curated: line = line[1:].strip()
         
         if not line.startswith(("http://", "https://")): continue
         if line in seen: continue
         seen.add(line)
         
-        if is_featured:
-            featured.append(line)
-        else:
-            regular.append(line)
+        all_sources.append(line)
+        if is_curated:
+            curated_sources.append(line)
             
-    return regular, featured
+    return all_sources, curated_sources
 
 def download_source(url: str) -> tuple[list[str], bool, str]:
     last_err = "unknown"
@@ -181,30 +180,52 @@ def test_xray_latency(config: str, xray_path: str) -> tuple[bool, float]:
         if temp_cfg_path and os.path.exists(temp_cfg_path):
             os.unlink(temp_cfg_path)
 
-def download_curated(sources: list[str]) -> list[str]:
+def download_curated(sources: list[str]) -> tuple[list[str], dict]:
     print("\n" + "=" * 60)
     print(f"Qode — Curated Collection ({len(sources)} sources, no testing)")
     print("=" * 60)
     
+    started_at = time.time()
     all_configs = []
     seen = set()
+    failed = []
+    succeeded = 0
+    raw_total = 0
     
     with concurrent.futures.ThreadPoolExecutor(max_workers=DOWNLOAD_WORKERS) as executor:
-        futures = {executor.submit(download_source, url): url for url in sources}
+        futures = {executor.submit(download_source, url): (i, url) for i, url in enumerate(sources, 1)}
         for future in concurrent.futures.as_completed(futures):
+            i, url = futures[future]
             configs, ok, err = future.result()
+            name = process_tag(i, url)
+            
             if ok:
+                raw_total += len(configs)
                 new = 0
                 for c in configs:
                     if c not in seen:
                         seen.add(c)
                         all_configs.append(c)
                         new += 1
-                print(f"  -> +{new} new (total: {len(all_configs)})")
+                succeeded += 1
+                print(f"[{i:02d}/{len(sources):02d}] -> +{new} new (total: {len(all_configs)})")
             else:
-                print(f"  -> {err}")
+                failed.append({"id": i, "tag": name, "error": err})
+                print(f"[{i:02d}/{len(sources):02d}] -> {err}")
 
-    return all_configs
+    duration = round(time.time() - started_at, 2)
+    report = {
+        "label": "curated",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "duration_seconds": duration,
+        "sources_total": len(sources),
+        "sources_ok": succeeded,
+        "sources_failed": len(failed),
+        "raw_count": raw_total,
+        "unique_count": len(all_configs),
+        "failed_sources": failed
+    }
+    return all_configs, report
 
 def collect_and_scan_full(sources: list[str], workers: int) -> tuple[list[dict], dict]:
     started_at = time.time()
@@ -306,28 +327,31 @@ def build_featured(alive_full: list[dict], workers: int, xray_exe: str) -> tuple
 def main():
     os.makedirs(REPORT_DIR, exist_ok=True)
     workers = benchmark_system()
-    regular_sources, curated_sources = load_sources()
+    all_sources, curated_sources = load_sources()
     
     xray_exe = os.path.join("xray-core", "xray.exe") if os.name == 'nt' else os.path.join("xray-core", "xray")
     if not os.path.exists(xray_exe):
         print("Xray executable not found! Exiting.")
         sys.exit(1)
 
-    # 1. Curated (Starred sources, no testing)
+    # 1. Curated
     if curated_sources:
-        curated_configs = download_curated(curated_sources)
+        curated_configs, curated_report = download_curated(curated_sources)
+        with open(os.path.join(REPORT_DIR, "curated.json"), "w", encoding="utf-8") as f:
+            json.dump(curated_report, f, indent=2, ensure_ascii=False)
         with open(OUTPUT_CURATED, "w", encoding="utf-8") as f:
             f.write("\n".join(curated_configs))
         print(f"→ {OUTPUT_CURATED} saved.")
 
-    # 2. Full & Featured (Regular sources)
-    alive_full, full_report = collect_and_scan_full(regular_sources, workers)
+    # 2. Full
+    alive_full, full_report = collect_and_scan_full(all_sources, workers)
     with open(os.path.join(REPORT_DIR, "full.json"), "w", encoding="utf-8") as f:
         json.dump(full_report, f, indent=2, ensure_ascii=False)
     with open(OUTPUT_FULL, "w", encoding="utf-8") as f:
         f.write("\n".join([x["config"] for x in alive_full]))
     print(f"→ {OUTPUT_FULL} saved.")
 
+    # 3. Featured
     if alive_full:
         featured, featured_report = build_featured(alive_full, XRAY_WORKERS, xray_exe)
         with open(os.path.join(REPORT_DIR, "featured.json"), "w", encoding="utf-8") as f:
