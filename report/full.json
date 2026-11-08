@@ -1,18 +1,19 @@
 {
   "label": "full-24h",
-  "timestamp": "2026-11-07T17:42:02.155283+00:00",
-  "duration_seconds": 0.38,
+  "timestamp": "2026-11-08T05:37:57.399577+00:00",
+  "duration_seconds": 0.51,
   "sources_total": 17,
   "sources_ok": 17,
   "sources_failed": 0,
-  "raw_count": 6414,
-  "unique_count": 6149,
-  "duplicates_removed": 265,
+  "raw_count": 6882,
+  "unique_count": 6437,
+  "duplicates_removed": 445,
   "failed_sources": [],
   "protocol_breakdown": {
-    "ss": 2076,
-    "trojan": 830,
-    "vmess": 1777,
-    "vless": 1466
+    "ss": 2072,
+    "trojan": 899,
+    "vmess": 1922,
+    "vless": 1540,
+    "socks5": 4
   }
 }
