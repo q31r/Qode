@@ -180,6 +180,7 @@ def collect_and_scan_full(sources: list[str], workers: int) -> tuple[list[dict],
     seen = set()
     failed = []
     completed = 0
+    raw_total = 0
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=DOWNLOAD_WORKERS) as executor:
         futures = {executor.submit(download_source, url): (i, url) for i, url in enumerate(sources, 1)}
@@ -188,6 +189,7 @@ def collect_and_scan_full(sources: list[str], workers: int) -> tuple[list[dict],
             configs, ok, err = future.result()
             completed += 1
             if ok:
+                raw_total += len(configs)
                 new = 0
                 for c in configs:
                     if c not in seen:
@@ -223,7 +225,7 @@ def collect_and_scan_full(sources: list[str], workers: int) -> tuple[list[dict],
         "sources_total": len(sources),
         "sources_ok": len(sources) - len(failed),
         "sources_failed": len(failed),
-        "raw_count": sum(len(c) for c in [future.result()[0] for future in futures]) if 'futures' in locals() else 0,
+        "raw_count": raw_total,
         "unique_count": len(all_configs),
         "alive_count": len(alive_tcp),
         "failed_sources": failed
