@@ -9,19 +9,21 @@ import socket
 import random
 import urllib.parse
 import concurrent.futures
+import geoip2.database
 from datetime import datetime, timezone
 from cryptography.fernet import Fernet
+from collections import defaultdict
 
 SOURCES_FILE = "sources.enc"
 OUTPUT_FULL = "nodes_full.txt"
 OUTPUT_CURATED = "nodes_curated.txt"
 REPORT_DIR = "report"
+GEOIP_DB = "GeoLite2-Country.mmdb"
 
 TIMEOUT = 15
 MAX_RETRIES = 2
 USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0 Safari/537.36"
 DOWNLOAD_WORKERS = 10
-TCP_WORKERS = 100
 
 _TAGS = [
     "Alpha Node", "Beta Cluster", "Gamma Pool", "Delta Group", "Epsilon Set",
@@ -31,6 +33,14 @@ _TAGS = [
 ]
 
 VALID_PREFIXES = ("vless://", "vmess://", "trojan://", "ss://", "socks5://", "hysteria2://", "hy2://")
+
+def country_code_to_flag(code: str) -> str:
+    if not code or len(code) != 2:
+        return ""
+    try:
+        return "".join(chr(127397 + ord(c.upper())) for c in code)
+    except:
+        return ""
 
 def process_tag(index: int, url: str) -> str:
     h = hashlib.sha256(url.encode()).digest()
@@ -136,6 +146,103 @@ def benchmark_system() -> int:
         print("  Network unstable. Falling back to 10 workers.")
         return 10
 
+def build_display_name(host: str, reader) -> str:
+    country_name = None
+    country_code = None
+    resolved_ip = None
+    
+    if host:
+        try:
+            socket.inet_aton(host)
+            resolved_ip = host
+        except (socket.error, OSError):
+            try:
+                resolved_ip = socket.gethostbyname(host)
+            except:
+                resolved_ip = None
+        
+        if resolved_ip and reader:
+            try:
+                response = reader.country(resolved_ip)
+                country_name = response.country.name
+                country_code = response.country.iso_code
+            except:
+                pass
+    
+    parts = []
+    if country_name and country_code:
+        flag = country_code_to_flag(country_code)
+        if flag:
+            parts.append(f"{flag} {country_name}")
+        else:
+            parts.append(country_name)
+    elif country_name:
+        parts.append(country_name)
+    
+    if resolved_ip:
+        parts.append(resolved_ip)
+    elif host:
+        parts.append(host)
+    
+    parts.append("By q31r")
+    return " - ".join(parts)
+
+def rewrite_display_names(configs: list[str], label: str) -> list[str]:
+    reader = None
+    if os.path.exists(GEOIP_DB):
+        try:
+            reader = geoip2.database.Reader(GEOIP_DB)
+            print(f"\n  🌍 Rewriting display names for {len(configs)} configs...")
+        except Exception as e:
+            print(f"  ⚠️  GeoIP database error: {e}")
+    else:
+        print(f"  ⚠️  GeoIP database '{GEOIP_DB}' not found. Using fallback names.")
+    
+    rewritten = []
+    country_stats = defaultdict(int)
+    no_country = 0
+    
+    for config in configs:
+        try:
+            host, _ = extract_host_port(config)
+            
+            if reader:
+                display_name = build_display_name(host, reader)
+            else:
+                display_name = f"{host} - By q31r" if host else "By q31r"
+            
+            if " - " in display_name and display_name.split(" - ")[0]:
+                first_part = display_name.split(" - ")[0]
+                if any(ord(c) > 127000 for c in first_part):
+                    country_stats[first_part] += 1
+                else:
+                    no_country += 1
+            else:
+                no_country += 1
+            
+            encoded_name = urllib.parse.quote(display_name, safe='')
+            if "#" in config:
+                new_config = config.split("#")[0] + "#" + encoded_name
+            else:
+                new_config = config + "#" + encoded_name
+            
+            rewritten.append(new_config)
+            
+        except Exception:
+            rewritten.append(config)
+            no_country += 1
+    
+    if reader:
+        reader.close()
+    
+    print(f"  ✅ Rewritten: {len(rewritten)} | With country: {sum(country_stats.values())} | Without country: {no_country}")
+    if country_stats:
+        print(f"  📊 Top countries:")
+        for country, count in sorted(country_stats.items(), key=lambda x: -x[1])[:5]:
+            print(f"     {country}: {count}")
+    
+    return rewritten
+
 def download_and_filter(sources: list[str], label: str, workers: int) -> tuple[list[dict], dict]:
     started_at = time.time()
     print("=" * 60)
@@ -183,6 +290,11 @@ def download_and_filter(sources: list[str], label: str, workers: int) -> tuple[l
     alive_tcp.sort(key=lambda x: x["tcp_latency"])
     print(f"Found {len(alive_tcp)} alive proxies. Sorted by TCP speed.")
 
+    if alive_tcp:
+        rewritten = rewrite_display_names([x["config"] for x in alive_tcp], label)
+        for i, x in enumerate(alive_tcp):
+            x["config"] = rewritten[i]
+
     duration = round(time.time() - started_at, 2)
     report = {
         "label": label,
@@ -203,7 +315,6 @@ def main():
     workers = benchmark_system()
     all_sources, curated_sources = load_sources()
 
-    # 1. Curated (Starred sources with TCP scan)
     if curated_sources:
         curated_alive, curated_report = download_and_filter(curated_sources, "curated", workers)
         with open(os.path.join(REPORT_DIR, "curated.json"), "w", encoding="utf-8") as f:
@@ -212,7 +323,6 @@ def main():
             f.write("\n".join([x["config"] for x in curated_alive]))
         print(f"→ {OUTPUT_CURATED} saved.")
 
-    # 2. Full (All sources with TCP scan)
     if all_sources:
         full_alive, full_report = download_and_filter(all_sources, "full", workers)
         with open(os.path.join(REPORT_DIR, "full.json"), "w", encoding="utf-8") as f:
