@@ -1,22 +1,18 @@
 {
   "label": "curated",
-  "timestamp": "2026-11-09T16:24:04.572227+00:00",
-  "duration_seconds": 29.48,
+  "timestamp": "2026-11-09T22:03:58.658605+00:00",
+  "duration_seconds": 28.78,
   "sources_total": 36,
   "sources_ok": 13,
   "sources_failed": 23,
   "raw_count": 2087,
-  "unique_count": 1742,
-  "alive_count": 895,
+  "deduplicated_count": 1323,
+  "duplicates_removed": 764,
+  "alive_count": 535,
   "failed_sources": [
     {
-      "id": 20,
-      "tag": "Xi Access 20",
-      "error": "http_404"
-    },
-    {
-      "id": 22,
-      "tag": "Xi Access 22",
+      "id": 15,
+      "tag": "Nu Backbone 15",
       "error": "http_404"
     },
     {
@@ -25,13 +21,8 @@
       "error": "http_404"
     },
     {
-      "id": 15,
-      "tag": "Nu Backbone 15",
-      "error": "http_404"
-    },
-    {
-      "id": 21,
-      "tag": "Nu Backbone 21",
+      "id": 20,
+      "tag": "Xi Access 20",
       "error": "http_404"
     },
     {
@@ -55,6 +46,16 @@
       "error": "http_404"
     },
     {
+      "id": 22,
+      "tag": "Xi Access 22",
+      "error": "http_404"
+    },
+    {
+      "id": 21,
+      "tag": "Nu Backbone 21",
+      "error": "http_404"
+    },
+    {
       "id": 23,
       "tag": "Alpha Node 23",
       "error": "http_404"
@@ -65,8 +66,18 @@
       "error": "http_404"
     },
     {
+      "id": 27,
+      "tag": "Nu Backbone 27",
+      "error": "http_404"
+    },
+    {
       "id": 25,
       "tag": "Epsilon Set 25",
+      "error": "http_404"
+    },
+    {
+      "id": 29,
+      "tag": "Mu Uplink 29",
       "error": "http_404"
     },
     {
@@ -77,21 +88,6 @@
     {
       "id": 28,
       "tag": "Eta Bundle 28",
-      "error": "http_404"
-    },
-    {
-      "id": 27,
-      "tag": "Nu Backbone 27",
-      "error": "http_404"
-    },
-    {
-      "id": 31,
-      "tag": "Rho Bridge 31",
-      "error": "http_404"
-    },
-    {
-      "id": 29,
-      "tag": "Mu Uplink 29",
       "error": "http_404"
     },
     {
@@ -107,6 +103,11 @@
     {
       "id": 32,
       "tag": "Alpha Node 32",
+      "error": "http_404"
+    },
+    {
+      "id": 31,
+      "tag": "Rho Bridge 31",
       "error": "http_404"
     },
     {
