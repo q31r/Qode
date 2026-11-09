@@ -2,7 +2,7 @@
 
 <div align="center">
   
-[![English](https://img.shields.io/badge/Language-English-blue?style=for-the-badge)](#-english)  [![پارسی](https://img.shields.io/badge/Language-پارسی-green?style=for-the-badge)](#-پارسی)
+[![English](https://img.shields.io/badge/Language-English-blue?style=for-the-badge)](#-english)  [![Persian](https://img.shields.io/badge/Language-Persian-green?style=for-the-badge)](#-persian)
 
 </div>
 
@@ -83,7 +83,9 @@ A: Yes! Open a pull request and add your source to the list. Make sure it's a va
 
 ---
 
-<a id="-پارسی"></a>
+<a id="-persian"></a>
+
+<div dir="rtl">
 
 ## 🇮🇷 پارسی
 
@@ -155,6 +157,8 @@ Qode کاملاً در GitHub Actions اجرا می‌شود و هیچ دخال�
 
 **س: می‌توانم منابعی مشارکت کنم؟**
 ج: بله! یک pull request باز کنید و منبع خود را به لیست اضافه کنید. مطمئن شوید که یک URL عمومی معتبر است.
+
+</div>
 
 ---
 
