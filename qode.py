@@ -125,6 +125,78 @@ def extract_host_port(config: str) -> tuple[str, int]:
     except:
         return None, None
 
+def extract_identity(config: str) -> str | None:
+    """استخراج UUID/Password از کانفیگ. اگر نشد، None برمی‌گرداند."""
+    try:
+        if config.startswith("vless://"):
+            return config.replace("vless://", "").split("@")[0]
+        
+        if config.startswith("trojan://"):
+            return config.replace("trojan://", "").split("@")[0]
+        
+        if config.startswith("hysteria2://"):
+            return config.replace("hysteria2://", "").split("@")[0]
+        
+        if config.startswith("hy2://"):
+            return config.replace("hy2://", "").split("@")[0]
+        
+        if config.startswith("socks5://"):
+            body = config.replace("socks5://", "")
+            if "@" in body:
+                return body.split("@")[0]
+            return None
+        
+        if config.startswith("ss://"):
+            body = config.replace("ss://", "").split("#")[0].split("?")[0]
+            if "@" in body:
+                return body.split("@")[0]
+            try:
+                decoded = base64.b64decode(body + "===").decode("utf-8", errors="ignore")
+                if "@" in decoded:
+                    return decoded.split("@")[0]
+            except:
+                pass
+            return None
+        
+        if config.startswith("vmess://"):
+            try:
+                body = config.replace("vmess://", "").split("#")[0]
+                decoded = base64.b64decode(body + "===").decode("utf-8", errors="ignore")
+                data = json.loads(decoded)
+                return data.get("id")
+            except:
+                return None
+    except:
+        return None
+    return None
+
+def deduplicate_configs(configs: list[str]) -> list[str]:
+    """حذف تکراری‌ها با کلید دقیق: Protocol + IP + Port + UUID/Password"""
+    seen_keys = set()
+    result = []
+    
+    for config in configs:
+        host, port = extract_host_port(config)
+        identity = extract_identity(config)
+        protocol = config.split("://")[0] if "://" in config else "unknown"
+        
+        if host and port and identity:
+            key = (protocol, host, port, identity)
+        else:
+            key = None
+        
+        if key is None:
+            result.append(config)
+            continue
+        
+        if key in seen_keys:
+            continue
+        
+        seen_keys.add(key)
+        result.append(config)
+    
+    return result
+
 def test_tcp_latency(config: str) -> tuple[bool, float]:
     host, port = extract_host_port(config)
     if not host or not port: return False, 0.0
@@ -261,7 +333,6 @@ def download_and_filter(sources: list[str], label: str, workers: int) -> tuple[l
     print("=" * 60)
 
     all_configs = []
-    seen = set()
     failed = []
     completed = 0
     raw_total = 0
@@ -274,16 +345,17 @@ def download_and_filter(sources: list[str], label: str, workers: int) -> tuple[l
             completed += 1
             if ok:
                 raw_total += len(configs)
-                new = 0
-                for c in configs:
-                    if c not in seen:
-                        seen.add(c)
-                        all_configs.append(c)
-                        new += 1
-                print(f"[{completed:02d}/{len(sources):02d}] -> +{new} new (total: {len(all_configs)})")
+                all_configs.extend(configs)
+                print(f"[{completed:02d}/{len(sources):02d}] -> +{len(configs)} new (raw total: {len(all_configs)})")
             else:
                 failed.append({"id": i, "tag": process_tag(i, url), "error": err})
                 print(f"[{completed:02d}/{len(sources):02d}] -> {err}")
+
+    print(f"\n🧹 Deduplicating with precise keys (Protocol + IP + Port + Identity)...")
+    before_dedup = len(all_configs)
+    all_configs = deduplicate_configs(all_configs)
+    dedup_removed = before_dedup - len(all_configs)
+    print(f"  Removed {dedup_removed} duplicates. Remaining: {len(all_configs)}")
 
     print(f"\nScanning {len(all_configs)} proxies for TCP Liveness & Speed...")
     alive_tcp = []
@@ -322,7 +394,8 @@ def download_and_filter(sources: list[str], label: str, workers: int) -> tuple[l
         "sources_ok": len(sources) - len(failed),
         "sources_failed": len(failed),
         "raw_count": raw_total,
-        "unique_count": len(all_configs),
+        "deduplicated_count": len(all_configs),
+        "duplicates_removed": dedup_removed,
         "alive_count": len(alive_tcp),
         "failed_sources": failed
     }
