@@ -1,127 +1,127 @@
 {
   "label": "full",
-  "timestamp": "2026-11-09T14:41:43.794182+00:00",
-  "duration_seconds": 1182.18,
-  "sources_total": 141,
-  "sources_ok": 118,
+  "timestamp": "2026-11-09T16:44:03.726903+00:00",
+  "duration_seconds": 1199.15,
+  "sources_total": 197,
+  "sources_ok": 174,
   "sources_failed": 23,
-  "raw_count": 177171,
-  "unique_count": 148935,
-  "alive_count": 76876,
+  "raw_count": 204979,
+  "unique_count": 154723,
+  "alive_count": 81642,
   "failed_sources": [
     {
-      "id": 44,
-      "tag": "Nu Backbone 44",
-      "error": "http_404"
-    },
-    {
-      "id": 43,
-      "tag": "Zeta Archive 43",
-      "error": "http_404"
-    },
-    {
-      "id": 47,
-      "tag": "Delta Group 47",
-      "error": "http_404"
-    },
-    {
-      "id": 49,
-      "tag": "Xi Access 49",
-      "error": "http_404"
-    },
-    {
-      "id": 46,
-      "tag": "Tau Tunnel 46",
-      "error": "http_404"
-    },
-    {
-      "id": 45,
-      "tag": "Tau Tunnel 45",
-      "error": "http_404"
-    },
-    {
-      "id": 48,
-      "tag": "Beta Cluster 48",
-      "error": "http_404"
-    },
-    {
-      "id": 51,
-      "tag": "Alpha Node 51",
+      "id": 50,
+      "tag": "Zeta Archive 50",
       "error": "http_404"
     },
     {
       "id": 52,
-      "tag": "Delta Group 52",
-      "error": "http_404"
-    },
-    {
-      "id": 50,
-      "tag": "Kappa Exit 50",
+      "tag": "Tau Tunnel 52",
       "error": "http_404"
     },
     {
       "id": 54,
-      "tag": "Eta Bundle 54",
-      "error": "http_404"
-    },
-    {
-      "id": 53,
-      "tag": "Epsilon Set 53",
-      "error": "http_404"
-    },
-    {
-      "id": 56,
-      "tag": "Eta Bundle 56",
-      "error": "http_404"
-    },
-    {
-      "id": 57,
-      "tag": "Mu Uplink 57",
-      "error": "http_404"
-    },
-    {
-      "id": 58,
-      "tag": "Beta Cluster 58",
+      "tag": "Delta Group 54",
       "error": "http_404"
     },
     {
       "id": 55,
-      "tag": "Nu Backbone 55",
+      "tag": "Beta Cluster 55",
       "error": "http_404"
     },
     {
-      "id": 60,
-      "tag": "Alpha Node 60",
+      "id": 57,
+      "tag": "Nu Backbone 57",
+      "error": "http_404"
+    },
+    {
+      "id": 53,
+      "tag": "Tau Tunnel 53",
+      "error": "http_404"
+    },
+    {
+      "id": 51,
+      "tag": "Nu Backbone 51",
+      "error": "http_404"
+    },
+    {
+      "id": 58,
+      "tag": "Xi Access 58",
       "error": "http_404"
     },
     {
       "id": 59,
-      "tag": "Rho Bridge 59",
+      "tag": "Alpha Node 59",
       "error": "http_404"
     },
     {
-      "id": 62,
-      "tag": "Upsilon Edge 62",
-      "error": "http_404"
-    },
-    {
-      "id": 61,
-      "tag": "Delta Group 61",
+      "id": 56,
+      "tag": "Xi Access 56",
       "error": "http_404"
     },
     {
       "id": 63,
-      "tag": "Rho Bridge 63",
+      "tag": "Nu Backbone 63",
+      "error": "http_404"
+    },
+    {
+      "id": 60,
+      "tag": "Delta Group 60",
+      "error": "http_404"
+    },
+    {
+      "id": 61,
+      "tag": "Epsilon Set 61",
+      "error": "http_404"
+    },
+    {
+      "id": 62,
+      "tag": "Eta Bundle 62",
+      "error": "http_404"
+    },
+    {
+      "id": 65,
+      "tag": "Mu Uplink 65",
+      "error": "http_404"
+    },
+    {
+      "id": 68,
+      "tag": "Alpha Node 68",
+      "error": "http_404"
+    },
+    {
+      "id": 66,
+      "tag": "Beta Cluster 66",
+      "error": "http_404"
+    },
+    {
+      "id": 67,
+      "tag": "Rho Bridge 67",
       "error": "http_404"
     },
     {
       "id": 64,
-      "tag": "Xi Access 64",
+      "tag": "Eta Bundle 64",
       "error": "http_404"
     },
     {
-      "id": 100,
-      "tag": "Eta Bundle 100",
+      "id": 69,
+      "tag": "Delta Group 69",
+      "error": "http_404"
+    },
+    {
+      "id": 72,
+      "tag": "Xi Access 72",
+      "error": "http_404"
+    },
+    {
+      "id": 70,
+      "tag": "Upsilon Edge 70",
+      "error": "http_404"
+    },
+    {
+      "id": 71,
+      "tag": "Rho Bridge 71",
       "error": "http_404"
     }
   ]
