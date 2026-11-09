@@ -7,8 +7,6 @@ import hashlib
 import requests
 import socket
 import random
-import subprocess
-import tempfile
 import urllib.parse
 import concurrent.futures
 from datetime import datetime, timezone
@@ -16,7 +14,6 @@ from cryptography.fernet import Fernet
 
 SOURCES_FILE = "sources.enc"
 OUTPUT_FULL = "nodes_full.txt"
-OUTPUT_FEATURED = "nodes_featured.txt"
 OUTPUT_CURATED = "nodes_curated.txt"
 REPORT_DIR = "report"
 
@@ -24,7 +21,7 @@ TIMEOUT = 15
 MAX_RETRIES = 2
 USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0 Safari/537.36"
 DOWNLOAD_WORKERS = 10
-XRAY_WORKERS = 5
+TCP_WORKERS = 100
 
 _TAGS = [
     "Alpha Node", "Beta Cluster", "Gamma Pool", "Delta Group", "Epsilon Set",
@@ -139,98 +136,10 @@ def benchmark_system() -> int:
         print("  Network unstable. Falling back to 10 workers.")
         return 10
 
-def test_xray_latency(config: str, xray_path: str) -> tuple[bool, float]:
-    host, port = extract_host_port(config)
-    if not host or not port: return False, 0.0
-    
-    socks_port = random.randint(20000, 60000)
-    
-    temp_json = {
-        "log": {"loglevel": "none"},
-        "outbounds": [{"protocol": "freedom"}],
-        "inbounds": [{"port": socks_port, "protocol": "socks", "settings": {"auth": "noauth", "udp": False}}]
-    }
-    
-    temp_cfg_path = None
-    proc = None
-    try:
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False, encoding='utf-8') as f:
-            json.dump(temp_json, f)
-            temp_cfg_path = f.name
-            
-        proc = subprocess.Popen([xray_path, "-c", temp_cfg_path], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        time.sleep(1.0)
-        
-        try:
-            proxies = {"http": f"socks5h://127.0.0.1:{socks_port}", "https": f"socks5h://127.0.0.1:{socks_port}"}
-            start = time.time()
-            res = requests.get("https://api.ipify.org", proxies=proxies, timeout=4)
-            if res.status_code == 200:
-                return True, round((time.time() - start) * 1000, 2)
-        except:
-            pass
-        return False, 0.0
-    except Exception:
-        return False, 0.0
-    finally:
-        if proc:
-            proc.terminate()
-            try: proc.wait(timeout=1)
-            except: proc.kill()
-        if temp_cfg_path and os.path.exists(temp_cfg_path):
-            os.unlink(temp_cfg_path)
-
-def download_curated(sources: list[str]) -> tuple[list[str], dict]:
-    print("\n" + "=" * 60)
-    print(f"Qode — Curated Collection ({len(sources)} sources, no testing)")
-    print("=" * 60)
-    
-    started_at = time.time()
-    all_configs = []
-    seen = set()
-    failed = []
-    succeeded = 0
-    raw_total = 0
-    
-    with concurrent.futures.ThreadPoolExecutor(max_workers=DOWNLOAD_WORKERS) as executor:
-        futures = {executor.submit(download_source, url): (i, url) for i, url in enumerate(sources, 1)}
-        for future in concurrent.futures.as_completed(futures):
-            i, url = futures[future]
-            configs, ok, err = future.result()
-            name = process_tag(i, url)
-            
-            if ok:
-                raw_total += len(configs)
-                new = 0
-                for c in configs:
-                    if c not in seen:
-                        seen.add(c)
-                        all_configs.append(c)
-                        new += 1
-                succeeded += 1
-                print(f"[{i:02d}/{len(sources):02d}] -> +{new} new (total: {len(all_configs)})")
-            else:
-                failed.append({"id": i, "tag": name, "error": err})
-                print(f"[{i:02d}/{len(sources):02d}] -> {err}")
-
-    duration = round(time.time() - started_at, 2)
-    report = {
-        "label": "curated",
-        "timestamp": datetime.now(timezone.utc).isoformat(),
-        "duration_seconds": duration,
-        "sources_total": len(sources),
-        "sources_ok": succeeded,
-        "sources_failed": len(failed),
-        "raw_count": raw_total,
-        "unique_count": len(all_configs),
-        "failed_sources": failed
-    }
-    return all_configs, report
-
-def collect_and_scan_full(sources: list[str], workers: int) -> tuple[list[dict], dict]:
+def download_and_filter(sources: list[str], label: str, workers: int) -> tuple[list[dict], dict]:
     started_at = time.time()
     print("=" * 60)
-    print(f"Qode — Full Collection ({len(sources)} sources, parallel)")
+    print(f"Qode — {label} Collection ({len(sources)} sources)")
     print("=" * 60)
 
     all_configs = []
@@ -276,7 +185,7 @@ def collect_and_scan_full(sources: list[str], workers: int) -> tuple[list[dict],
 
     duration = round(time.time() - started_at, 2)
     report = {
-        "label": "full",
+        "label": label,
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "duration_seconds": duration,
         "sources_total": len(sources),
@@ -289,76 +198,28 @@ def collect_and_scan_full(sources: list[str], workers: int) -> tuple[list[dict],
     }
     return alive_tcp, report
 
-def build_featured(alive_full: list[dict], workers: int, xray_exe: str) -> tuple[list[dict], dict]:
-    print("\n" + "=" * 60)
-    print("Qode — Featured Collection (Scanning all TCP-Alive)")
-    print("=" * 60)
-    
-    featured = []
-    started_at = time.time()
-    
-    with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
-        futures = {executor.submit(test_xray_latency, item["config"], xray_exe): item for item in alive_full}
-        
-        for i, future in enumerate(concurrent.futures.as_completed(futures)):
-            item = futures[future]
-            ok, lat = future.result()
-            if ok:
-                featured.append({
-                    "config": item["config"],
-                    "tcp_latency": item["tcp_latency"],
-                    "xray_latency": lat
-                })
-                
-            if (i+1) % 1000 == 0:
-                print(f"  └─ Scanned {i+1}/{len(alive_full)} | Xray-Alive: {len(featured)}")
-
-    featured.sort(key=lambda x: (x["xray_latency"], x["tcp_latency"]))
-    
-    report = {
-        "label": "featured",
-        "timestamp": datetime.now(timezone.utc).isoformat(),
-        "duration_seconds": round(time.time() - started_at, 2),
-        "total_scanned": len(alive_full),
-        "achieved_count": len(featured)
-    }
-    return featured, report
-
 def main():
     os.makedirs(REPORT_DIR, exist_ok=True)
     workers = benchmark_system()
     all_sources, curated_sources = load_sources()
-    
-    xray_exe = os.path.join("xray-core", "xray.exe") if os.name == 'nt' else os.path.join("xray-core", "xray")
-    if not os.path.exists(xray_exe):
-        print("Xray executable not found! Exiting.")
-        sys.exit(1)
 
-    # 1. Curated
+    # 1. Curated (Starred sources with TCP scan)
     if curated_sources:
-        curated_configs, curated_report = download_curated(curated_sources)
+        curated_alive, curated_report = download_and_filter(curated_sources, "curated", workers)
         with open(os.path.join(REPORT_DIR, "curated.json"), "w", encoding="utf-8") as f:
             json.dump(curated_report, f, indent=2, ensure_ascii=False)
         with open(OUTPUT_CURATED, "w", encoding="utf-8") as f:
-            f.write("\n".join(curated_configs))
+            f.write("\n".join([x["config"] for x in curated_alive]))
         print(f"→ {OUTPUT_CURATED} saved.")
 
-    # 2. Full
-    alive_full, full_report = collect_and_scan_full(all_sources, workers)
-    with open(os.path.join(REPORT_DIR, "full.json"), "w", encoding="utf-8") as f:
-        json.dump(full_report, f, indent=2, ensure_ascii=False)
-    with open(OUTPUT_FULL, "w", encoding="utf-8") as f:
-        f.write("\n".join([x["config"] for x in alive_full]))
-    print(f"→ {OUTPUT_FULL} saved.")
-
-    # 3. Featured
-    if alive_full:
-        featured, featured_report = build_featured(alive_full, XRAY_WORKERS, xray_exe)
-        with open(os.path.join(REPORT_DIR, "featured.json"), "w", encoding="utf-8") as f:
-            json.dump(featured_report, f, indent=2, ensure_ascii=False)
-        with open(OUTPUT_FEATURED, "w", encoding="utf-8") as f:
-            f.write("\n".join([x["config"] for x in featured]))
-        print(f"→ {OUTPUT_FEATURED} saved.")
+    # 2. Full (All sources with TCP scan)
+    if all_sources:
+        full_alive, full_report = download_and_filter(all_sources, "full", workers)
+        with open(os.path.join(REPORT_DIR, "full.json"), "w", encoding="utf-8") as f:
+            json.dump(full_report, f, indent=2, ensure_ascii=False)
+        with open(OUTPUT_FULL, "w", encoding="utf-8") as f:
+            f.write("\n".join([x["config"] for x in full_alive]))
+        print(f"→ {OUTPUT_FULL} saved.")
 
     print("\n" + "=" * 60)
     print("Done.")
