@@ -17,6 +17,8 @@ from collections import defaultdict
 SOURCES_FILE = "sources.enc"
 OUTPUT_FULL = "nodes_full.txt"
 OUTPUT_CURATED = "nodes_curated.txt"
+OUTPUT_FULL_B64 = "nodes_full_Base64.txt"
+OUTPUT_CURATED_B64 = "nodes_curated_Base64.txt"
 REPORT_DIR = "report"
 GEOIP_DB = "GeoLite2-Country.mmdb"
 
@@ -243,6 +245,13 @@ def rewrite_display_names(configs: list[str], label: str) -> list[str]:
     
     return rewritten
 
+def save_base64(configs: list[str], output_file: str):
+    content = "\n".join(configs)
+    encoded = base64.b64encode(content.encode('utf-8')).decode('utf-8')
+    with open(output_file, "w", encoding="utf-8") as f:
+        f.write(encoded)
+    print(f"→ {output_file} saved (Base64).")
+
 def download_and_filter(sources: list[str], label: str, workers: int) -> tuple[list[dict], dict]:
     started_at = time.time()
     print("=" * 60)
@@ -319,17 +328,25 @@ def main():
         curated_alive, curated_report = download_and_filter(curated_sources, "curated", workers)
         with open(os.path.join(REPORT_DIR, "curated.json"), "w", encoding="utf-8") as f:
             json.dump(curated_report, f, indent=2, ensure_ascii=False)
+        
+        curated_configs = [x["config"] for x in curated_alive]
         with open(OUTPUT_CURATED, "w", encoding="utf-8") as f:
-            f.write("\n".join([x["config"] for x in curated_alive]))
+            f.write("\n".join(curated_configs))
         print(f"→ {OUTPUT_CURATED} saved.")
+        
+        save_base64(curated_configs, OUTPUT_CURATED_B64)
 
     if all_sources:
         full_alive, full_report = download_and_filter(all_sources, "full", workers)
         with open(os.path.join(REPORT_DIR, "full.json"), "w", encoding="utf-8") as f:
             json.dump(full_report, f, indent=2, ensure_ascii=False)
+        
+        full_configs = [x["config"] for x in full_alive]
         with open(OUTPUT_FULL, "w", encoding="utf-8") as f:
-            f.write("\n".join([x["config"] for x in full_alive]))
+            f.write("\n".join(full_configs))
         print(f"→ {OUTPUT_FULL} saved.")
+        
+        save_base64(full_configs, OUTPUT_FULL_B64)
 
     print("\n" + "=" * 60)
     print("Done.")
