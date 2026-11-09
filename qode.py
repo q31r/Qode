@@ -27,6 +27,8 @@ MAX_RETRIES = 2
 USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0 Safari/537.36"
 DOWNLOAD_WORKERS = 10
 
+PRIORITY_PORTS = {443, 8443, 2053, 2087, 2096, 2083, 8080, 8880, 2052, 2082}
+
 _TAGS = [
     "Alpha Node", "Beta Cluster", "Gamma Pool", "Delta Group", "Epsilon Set",
     "Zeta Archive", "Eta Bundle", "Theta Mesh", "Iota Route", "Kappa Exit",
@@ -303,6 +305,13 @@ def download_and_filter(sources: list[str], label: str, workers: int) -> tuple[l
         rewritten = rewrite_display_names([x["config"] for x in alive_tcp], label)
         for i, x in enumerate(alive_tcp):
             x["config"] = rewritten[i]
+
+        for x in alive_tcp:
+            _, port = extract_host_port(x["config"])
+            x["priority"] = 1 if port in PRIORITY_PORTS else 0
+        
+        alive_tcp.sort(key=lambda x: (-x["priority"], x["tcp_latency"]))
+        print(f"Re-sorted with priority ports at the top.")
 
     duration = round(time.time() - started_at, 2)
     report = {
