@@ -1,14 +1,15 @@
 {
   "label": "full",
-  "timestamp": "2026-11-10T16:36:36.761926+00:00",
-  "duration_seconds": 790.36,
+  "timestamp": "2026-11-10T18:53:02.143067+00:00",
+  "duration_seconds": 5410.86,
   "sources_total": 197,
   "sources_ok": 174,
   "sources_failed": 23,
-  "raw_count": 203136,
-  "deduplicated_count": 97746,
-  "duplicates_removed": 105390,
-  "alive_count": 30323,
+  "raw_count": 203151,
+  "filtered_out_invalid": 31454,
+  "deduplicated_count": 53564,
+  "duplicates_removed": 118133,
+  "alive_count": 30365,
   "failed_sources": [
     {
       "id": 50,
@@ -21,18 +22,18 @@
       "error": "http_404"
     },
     {
-      "id": 52,
-      "tag": "Tau Tunnel 52",
-      "error": "http_404"
-    },
-    {
       "id": 53,
       "tag": "Tau Tunnel 53",
       "error": "http_404"
     },
     {
-      "id": 54,
-      "tag": "Delta Group 54",
+      "id": 52,
+      "tag": "Tau Tunnel 52",
+      "error": "http_404"
+    },
+    {
+      "id": 56,
+      "tag": "Xi Access 56",
       "error": "http_404"
     },
     {
@@ -41,8 +42,8 @@
       "error": "http_404"
     },
     {
-      "id": 56,
-      "tag": "Xi Access 56",
+      "id": 54,
+      "tag": "Delta Group 54",
       "error": "http_404"
     },
     {
@@ -66,11 +67,6 @@
       "error": "http_404"
     },
     {
-      "id": 62,
-      "tag": "Eta Bundle 62",
-      "error": "http_404"
-    },
-    {
       "id": 60,
       "tag": "Delta Group 60",
       "error": "http_404"
@@ -78,6 +74,11 @@
     {
       "id": 63,
       "tag": "Nu Backbone 63",
+      "error": "http_404"
+    },
+    {
+      "id": 62,
+      "tag": "Eta Bundle 62",
       "error": "http_404"
     },
     {
@@ -96,8 +97,8 @@
       "error": "http_404"
     },
     {
-      "id": 69,
-      "tag": "Delta Group 69",
+      "id": 67,
+      "tag": "Rho Bridge 67",
       "error": "http_404"
     },
     {
@@ -106,8 +107,8 @@
       "error": "http_404"
     },
     {
-      "id": 67,
-      "tag": "Rho Bridge 67",
+      "id": 69,
+      "tag": "Delta Group 69",
       "error": "http_404"
     },
     {
