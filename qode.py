@@ -19,10 +19,12 @@ OUTPUT_FULL = "nodes_full.txt"
 OUTPUT_CURATED = "nodes_curated.txt"
 OUTPUT_FULL_B64 = "nodes_full_Base64.txt"
 OUTPUT_CURATED_B64 = "nodes_curated_Base64.txt"
+STATS_FILE = "stats.json"
 REPORT_DIR = "report"
 GEOIP_DB = "GeoLite2-Country.mmdb"
 
-TIMEOUT = 15
+TIMEOUT = 8
+TCP_RETRIES = 2
 MAX_RETRIES = 2
 USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0 Safari/537.36"
 DOWNLOAD_WORKERS = 10
@@ -37,6 +39,12 @@ _TAGS = [
 ]
 
 VALID_PREFIXES = ("vless://", "vmess://", "trojan://", "ss://", "socks5://", "hysteria2://", "hy2://")
+
+VALID_SS_METHODS = {
+    "aes-256-gcm", "aes-128-gcm", "chacha20-ietf-poly1305", "aes-256-cfb",
+    "aes-128-cfb", "chacha20", "xchacha20-ietf-poly1305",
+    "2022-blake3-aes-128-gcm", "2022-blake3-aes-256-gcm", "none"
+}
 
 def country_code_to_flag(code: str) -> str:
     if not code or len(code) != 2:
@@ -61,6 +69,125 @@ def classify_error(exc: Exception | None, status: int | None = None) -> str:
     if "ConnectionError" in name or "Connect" in name: return "connection_failed"
     if "InvalidURL" in name or "MissingSchema" in name: return "invalid_url"
     return "request_failed"
+
+def validate_strict(config: str) -> bool:
+    if not config or len(config) < 10:
+        return False
+    
+    if config.startswith("vless://"):
+        try:
+            body = config[8:]
+            if "@" not in body: return False
+            userinfo, rest = body.split("@", 1)
+            if not userinfo: return False
+            host_port = rest.split("?")[0].split("#")[0].split("/")[0]
+            parts = host_port.split(":")
+            if len(parts) != 2: return False
+            host, port_str = parts
+            if not host or not port_str: return False
+            port_num = int(port_str)
+            if not (1 <= port_num <= 65535): return False
+            return True
+        except:
+            return False
+    
+    if config.startswith("trojan://"):
+        try:
+            body = config[9:]
+            if "@" not in body: return False
+            password, rest = body.split("@", 1)
+            if not password: return False
+            host_port = rest.split("?")[0].split("#")[0].split("/")[0]
+            parts = host_port.split(":")
+            if len(parts) != 2: return False
+            host, port_str = parts
+            if not host or not port_str: return False
+            port_num = int(port_str)
+            if not (1 <= port_num <= 65535): return False
+            return True
+        except:
+            return False
+    
+    if config.startswith("vmess://"):
+        try:
+            body = config[8:].split("#")[0].strip()
+            padding = "=" * (-len(body) % 4)
+            decoded = base64.b64decode(body + padding).decode("utf-8")
+            data = json.loads(decoded)
+            for field in ["v", "add", "port", "id"]:
+                if field not in data: return False
+            if not data.get("add"): return False
+            if not data.get("id"): return False
+            port_num = int(data.get("port", 0))
+            if not (1 <= port_num <= 65535): return False
+            return True
+        except:
+            return False
+    
+    if config.startswith("ss://"):
+        try:
+            body = config[5:].split("#")[0].split("?")[0]
+            if "@" not in body: return False
+            encoded_part, server_part = body.split("@", 1)
+            padding = "=" * (-len(encoded_part) % 4)
+            decoded = base64.b64decode(encoded_part + padding).decode("utf-8")
+            if ":" not in decoded: return False
+            method, password = decoded.split(":", 1)
+            if not method or not password: return False
+            if method not in VALID_SS_METHODS: return False
+            host_port = server_part.split("/")[0]
+            parts = host_port.split(":")
+            if len(parts) != 2: return False
+            host, port_str = parts
+            if not host or not port_str: return False
+            port_num = int(port_str)
+            if not (1 <= port_num <= 65535): return False
+            return True
+        except:
+            return False
+    
+    if config.startswith("socks5://"):
+        try:
+            body = config[9:]
+            if "@" in body:
+                auth, rest = body.split("@", 1)
+                if ":" not in auth: return False
+                user, passwd = auth.split(":", 1)
+                if not user: return False
+            else:
+                rest = body
+            host_port = rest.split("/")[0].split("?")[0].split("#")[0]
+            parts = host_port.split(":")
+            if len(parts) != 2: return False
+            host, port_str = parts
+            if not host or not port_str: return False
+            port_num = int(port_str)
+            if not (1 <= port_num <= 65535): return False
+            return True
+        except:
+            return False
+    
+    if config.startswith("hysteria2://") or config.startswith("hy2://"):
+        try:
+            if config.startswith("hysteria2://"):
+                body = config[12:]
+            else:
+                body = config[6:]
+            if "@" not in body: return False
+            password, rest = body.split("@", 1)
+            if not password: return False
+            host_port = rest.split("/")[0].split("?")[0].split("#")[0]
+            parts = host_port.split(":")
+            if len(parts) != 2: return False
+            host, port_str = parts
+            if not host or not port_str: return False
+            port_num = int(port_str)
+            if not (1 <= port_num <= 65535): return False
+            return True
+        except:
+            return False
+    
+    return False
 
 def load_sources() -> tuple[list[str], list[str]]:
     password = os.environ["SOURCES_KEY"].encode()
@@ -110,16 +237,21 @@ def download_source(url: str) -> tuple[list[str], bool, str]:
         if attempt < MAX_RETRIES - 1: time.sleep(1.0)
     return [], False, last_err
 
-def is_likely_base64(s: str) -> bool:
-    if not s or len(s) < 30:
-        return False
-    valid_chars = set("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=")
-    if not all(c in valid_chars for c in s):
-        return False
-    return True
-
 def extract_host_port(config: str) -> tuple[str, int]:
     try:
+        if config.startswith("vmess://"):
+            try:
+                body = config[8:].split("#")[0].strip()
+                padding = "=" * (-len(body) % 4)
+                decoded = base64.b64decode(body + padding).decode("utf-8")
+                data = json.loads(decoded)
+                host = data.get("add")
+                port = data.get("port")
+                if host and port:
+                    return str(host), int(port)
+            except:
+                pass
+        
         if "@" in config:
             netloc = config.split("@")[1].split("/")[0].split("?")[0].split("#")[0]
         else:
@@ -128,8 +260,6 @@ def extract_host_port(config: str) -> tuple[str, int]:
             return match.hostname, match.port
         if ":" in netloc:
             host, port = netloc.rsplit(":", 1)
-            if is_likely_base64(host):
-                return None, None
             return host, int(port)
         return None, None
     except:
@@ -139,81 +269,71 @@ def extract_identity(config: str) -> str | None:
     try:
         if config.startswith("vless://"):
             return config.replace("vless://", "").split("@")[0]
-        
         if config.startswith("trojan://"):
             return config.replace("trojan://", "").split("@")[0]
-        
         if config.startswith("hysteria2://"):
             return config.replace("hysteria2://", "").split("@")[0]
-        
         if config.startswith("hy2://"):
             return config.replace("hy2://", "").split("@")[0]
-        
         if config.startswith("socks5://"):
             body = config.replace("socks5://", "")
-            if "@" in body:
-                return body.split("@")[0]
+            if "@" in body: return body.split("@")[0]
             return None
-        
         if config.startswith("ss://"):
             body = config.replace("ss://", "").split("#")[0].split("?")[0]
-            if "@" in body:
-                return body.split("@")[0]
+            if "@" in body: return body.split("@")[0]
             try:
                 decoded = base64.b64decode(body + "===").decode("utf-8", errors="ignore")
-                if "@" in decoded:
-                    return decoded.split("@")[0]
-            except:
-                pass
+                if "@" in decoded: return decoded.split("@")[0]
+            except: pass
             return None
-        
         if config.startswith("vmess://"):
             try:
                 body = config.replace("vmess://", "").split("#")[0]
                 decoded = base64.b64decode(body + "===").decode("utf-8", errors="ignore")
                 data = json.loads(decoded)
                 return data.get("id")
-            except:
-                return None
-    except:
-        return None
+            except: return None
+    except: return None
     return None
 
 def deduplicate_configs(configs: list[str]) -> list[str]:
     seen_keys = set()
     result = []
-    
     for config in configs:
         host, port = extract_host_port(config)
         identity = extract_identity(config)
         protocol = config.split("://")[0] if "://" in config else "unknown"
-        
         if host and port and identity:
             key = (protocol, host, port, identity)
         else:
             key = None
-        
         if key is None:
             result.append(config)
             continue
-        
         if key in seen_keys:
             continue
-        
         seen_keys.add(key)
         result.append(config)
-    
     return result
 
 def test_tcp_latency(config: str) -> tuple[bool, float]:
     host, port = extract_host_port(config)
     if not host or not port: return False, 0.0
-    try:
-        start = time.time()
-        with socket.create_connection((host, port), timeout=3):
-            return True, round((time.time() - start) * 1000, 2)
-    except:
-        return False, 0.0
+    
+    best_latency = None
+    for attempt in range(TCP_RETRIES):
+        try:
+            start = time.time()
+            with socket.create_connection((host, port), timeout=TIMEOUT):
+                latency = round((time.time() - start) * 1000, 2)
+                if best_latency is None or latency < best_latency:
+                    best_latency = latency
+                return True, best_latency
+        except:
+            if attempt < TCP_RETRIES - 1:
+                time.sleep(0.5)
+    return False, 0.0
 
 def benchmark_system() -> int:
     print("\nBenchmarking system & network speed...")
@@ -289,7 +409,6 @@ def rewrite_display_names(configs: list[str], label: str) -> list[str]:
     for config in configs:
         try:
             host, _ = extract_host_port(config)
-            
             if reader:
                 display_name = build_display_name(host, reader)
             else:
@@ -309,9 +428,7 @@ def rewrite_display_names(configs: list[str], label: str) -> list[str]:
                 new_config = config.split("#")[0] + "#" + encoded_name
             else:
                 new_config = config + "#" + encoded_name
-            
             rewritten.append(new_config)
-            
         except Exception:
             rewritten.append(config)
             no_country += 1
@@ -359,13 +476,19 @@ def download_and_filter(sources: list[str], label: str, workers: int) -> tuple[l
                 failed.append({"id": i, "tag": process_tag(i, url), "error": err})
                 print(f"[{completed:02d}/{len(sources):02d}] -> {err}")
 
-    print(f"\n🧹 Deduplicating with precise keys (Protocol + IP + Port + Identity)...")
+    print(f"\n🔍 Filtering invalid configs with strict validation...")
+    before_filter = len(all_configs)
+    all_configs = [c for c in all_configs if validate_strict(c)]
+    filtered_out = before_filter - len(all_configs)
+    print(f"  Removed {filtered_out} invalid configs. Remaining: {len(all_configs)}")
+
+    print(f"\n🧹 Deduplicating with precise keys...")
     before_dedup = len(all_configs)
     all_configs = deduplicate_configs(all_configs)
     dedup_removed = before_dedup - len(all_configs)
     print(f"  Removed {dedup_removed} duplicates. Remaining: {len(all_configs)}")
 
-    print(f"\nScanning {len(all_configs)} proxies for TCP Liveness & Speed...")
+    print(f"\nScanning {len(all_configs)} proxies for TCP Liveness & Speed (timeout: {TIMEOUT}s, retries: {TCP_RETRIES})...")
     alive_tcp = []
     
     with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
@@ -402,6 +525,7 @@ def download_and_filter(sources: list[str], label: str, workers: int) -> tuple[l
         "sources_ok": len(sources) - len(failed),
         "sources_failed": len(failed),
         "raw_count": raw_total,
+        "filtered_out_invalid": filtered_out,
         "deduplicated_count": len(all_configs),
         "duplicates_removed": dedup_removed,
         "alive_count": len(alive_tcp),
@@ -414,6 +538,13 @@ def main():
     workers = benchmark_system()
     all_sources, curated_sources = load_sources()
 
+    stats = {
+        "last_updated": datetime.now(timezone.utc).isoformat(),
+        "curated": {"total": 0, "alive": 0},
+        "full": {"total": 0, "alive": 0},
+        "sources": {"total": len(all_sources), "successful": 0, "failed": 0}
+    }
+
     if curated_sources:
         curated_alive, curated_report = download_and_filter(curated_sources, "curated", workers)
         with open(os.path.join(REPORT_DIR, "curated.json"), "w", encoding="utf-8") as f:
@@ -425,6 +556,9 @@ def main():
         print(f"→ {OUTPUT_CURATED} saved.")
         
         save_base64(curated_configs, OUTPUT_CURATED_B64)
+        
+        stats["curated"]["total"] = curated_report["deduplicated_count"]
+        stats["curated"]["alive"] = curated_report["alive_count"]
 
     if all_sources:
         full_alive, full_report = download_and_filter(all_sources, "full", workers)
@@ -437,6 +571,15 @@ def main():
         print(f"→ {OUTPUT_FULL} saved.")
         
         save_base64(full_configs, OUTPUT_FULL_B64)
+        
+        stats["full"]["total"] = full_report["deduplicated_count"]
+        stats["full"]["alive"] = full_report["alive_count"]
+        stats["sources"]["successful"] = full_report["sources_ok"]
+        stats["sources"]["failed"] = full_report["sources_failed"]
+
+    with open(STATS_FILE, "w", encoding="utf-8") as f:
+        json.dump(stats, f, indent=2, ensure_ascii=False)
+    print(f"→ {STATS_FILE} saved.")
 
     print("\n" + "=" * 60)
     print("Done.")

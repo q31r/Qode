@@ -6,6 +6,7 @@ on:
     paths-ignore:
       - 'nodes_*.txt'
       - 'report/**'
+      - 'stats.json'
 
   schedule:
     - cron: '0 0 * * *'
@@ -42,4 +43,4 @@ jobs:
       - name: Commit & Push
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "chore: update outputs and reports [skip ci]"
+          commit_message: "chore: update outputs, reports, and stats [skip ci]"
