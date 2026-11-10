@@ -45,8 +45,8 @@ Every day, GitHub Actions automatically updates the following proxy lists. You c
 
 Qode runs entirely in GitHub Actions with zero manual intervention, ensuring you always have the freshest free servers:
 
-1. **Fetch & Deduplicate:** Downloads thousands of configs from dozens of public sources and removes precise duplicates using Protocol, IP, Port, and UUID/Password as the key to keep the list clean.
-2. **TCP Liveness & Speed:** Performs fast TCP port scans to filter out dead nodes and sorts the survivors by connection speed, so you always get the fastest proxies first.
+1. **Fetch & Validate:** Downloads thousands of configs from dozens of public sources, filters out invalid ones with strict protocol validation, and removes precise duplicates using Protocol, IP, Port, and UUID/Password as the key to keep the list clean.
+2. **TCP Liveness & Speed:** Performs fast TCP port scans (with retries and longer timeout for unstable servers) to filter out dead nodes and sorts the survivors by connection speed, so you always get the fastest proxies first.
 3. **Priority Port Sorting:** Servers running on standard ports (443, 8443, 2053, etc.) are prioritized and listed at the top, improving stability and bypassing potential ISP restrictions.
 4. **Multi-Format Publishing:** Generates both plain text and Base64 encoded outputs to support a wide range of clients, from modern apps to legacy ones.
 5. **Automated Reports:** After each run, detailed JSON reports are generated in the `report/` directory, containing statistics about source health, deduplication, and alive proxy counts.
@@ -59,7 +59,7 @@ The entire pipeline (fetching, testing, and publishing) runs **once every 24 hou
 
 - ✅ **Fully Automated:** Zero manual intervention — just subscribe and forget.
 - 🚀 **High Performance:** Parallel downloading and multi-threaded TCP testing for maximum speed.
-- 🎯 **Quality Assured:** Precise deduplication and priority port sorting to keep only the best servers.
+- 🎯 **Quality Assured:** Strict validation, precise deduplication, and priority port sorting to keep only the best servers.
 - 📦 **Dual Format:** Both plain text and Base64 outputs for maximum client compatibility.
 - 📊 **Detailed Reports:** JSON reports for every run to track source health and list quality.
 - 🔄 **Daily Updates:** Fresh lists published every 24 hours without any downtime.
@@ -122,8 +122,8 @@ Qode یک جمع‌آوری‌کننده سابسکریپشن و پروکسی V2
 
 Qode کاملاً در GitHub Actions اجرا می‌شود و هیچ دخالت دستی نیاز ندارد، بنابراین همیشه تازه‌ترین سرورهای رایگان را دارید:
 
-1. **دریافت و حذف تکراری:** هزاران کانفیگ از ده‌ها منبع عمومی دانلود می‌کند و تکراری‌های دقیق را با استفاده از پروتکل، IP، پورت و UUID/پسورد به عنوان کلید حذف می‌کند تا لیست تمیز بماند.
-2. **تست زنده بودن TCP و سرعت:** اسکن سریع پورت TCP را انجام می‌دهد تا نودهای مرده را فیلتر کند و بازمانده‌ها را بر اساس سرعت اتصال مرتب می‌کند، بنابراین همیشه سریع‌ترین پروکسی‌ها را اول دریافت می‌کنید.
+1. **دریافت و اعتبارسنجی:** هزاران کانفیگ از ده‌ها منبع عمومی دانلود می‌کند، کانفیگ‌های نامعتبر را با اعتبارسنجی سخت‌گیرانه پروتکل حذف می‌کند و تکراری‌های دقیق را با استفاده از پروتکل، IP، پورت و UUID/پسورد به عنوان کلید حذف می‌کند تا لیست تمیز بماند.
+2. **تست زنده بودن TCP و سرعت:** اسکن سریع پورت TCP را انجام می‌دهد (با تلاش مجدد و تایم‌اوت بیشتر برای سرورهای ناپایدار) تا نودهای مرده را فیلتر کند و بازمانده‌ها را بر اساس سرعت اتصال مرتب می‌کند، بنابراین همیشه سریع‌ترین پروکسی‌ها را اول دریافت می‌کنید.
 3. **مرتب‌سازی بر اساس پورت اولویت‌دار:** سرورهایی که روی پورت‌های استاندارد (443، 8443، 2053 و غیره) اجرا می‌شوند، اولویت داده شده و در بالای لیست قرار می‌گیرند، که باعث بهبود پایداری و دور زدن محدودیت‌های احتمالی ISP می‌شود.
 4. **انتشار چند فرمتی:** هم خروجی متن ساده و هم Base64 را برای پشتیبانی از طیف گسترده‌ای از کلاینت‌ها، از اپلیکیشن‌های مدرن تا کلاینت‌های قدیمی، تولید می‌کند.
 5. **گزارش‌های خودکار:** پس از هر اجرا، گزارش‌های JSON دقیق در پوشه `report/` تولید می‌شوند که شامل آمار مربوط به سلامت منابع، حذف تکراری و تعداد پروکسی‌های زنده است.
@@ -136,7 +136,7 @@ Qode کاملاً در GitHub Actions اجرا می‌شود و هیچ دخال�
 
 - ✅ **کاملاً خودکار:** هیچ دخالت دستی لازم نیست — فقط سابسکریپشن کنید و فراموش کنید.
 - 🚀 **عملکرد بالا:** دانلود موازی و تست TCP چند رشته‌ای برای حداکثر سرعت.
-- 🎯 **تضمین کیفیت:** حذف تکراری دقیق و مرتب‌سازی بر اساس پورت اولویت‌دار برای نگه‌داشتن فقط بهترین سرورها.
+- 🎯 **تضمین کیفیت:** اعتبارسنجی سخت‌گیرانه، حذف تکراری دقیق و مرتب‌سازی بر اساس پورت اولویت‌دار برای نگه‌داشتن فقط بهترین سرورها.
 - 📦 **دو فرمت:** خروجی متن ساده و Base64 برای حداکثر سازگاری با کلاینت.
 - 📊 **گزارش‌های دقیق:** گزارش‌های JSON برای هر اجرا برای پیگیری سلامت منابع و کیفیت لیست.
 - 🔄 **به‌روزرسانی روزانه:** لیست‌های تازه هر ۲۴ ساعت یک بار بدون هیچ توقف منتشر می‌شوند.

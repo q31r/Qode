@@ -110,6 +110,14 @@ def download_source(url: str) -> tuple[list[str], bool, str]:
         if attempt < MAX_RETRIES - 1: time.sleep(1.0)
     return [], False, last_err
 
+def is_likely_base64(s: str) -> bool:
+    if not s or len(s) < 30:
+        return False
+    valid_chars = set("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=")
+    if not all(c in valid_chars for c in s):
+        return False
+    return True
+
 def extract_host_port(config: str) -> tuple[str, int]:
     try:
         if "@" in config:
@@ -120,13 +128,14 @@ def extract_host_port(config: str) -> tuple[str, int]:
             return match.hostname, match.port
         if ":" in netloc:
             host, port = netloc.rsplit(":", 1)
+            if is_likely_base64(host):
+                return None, None
             return host, int(port)
         return None, None
     except:
         return None, None
 
 def extract_identity(config: str) -> str | None:
-    """استخراج UUID/Password از کانفیگ. اگر نشد، None برمی‌گرداند."""
     try:
         if config.startswith("vless://"):
             return config.replace("vless://", "").split("@")[0]
@@ -171,7 +180,6 @@ def extract_identity(config: str) -> str | None:
     return None
 
 def deduplicate_configs(configs: list[str]) -> list[str]:
-    """حذف تکراری‌ها با کلید دقیق: Protocol + IP + Port + UUID/Password"""
     seen_keys = set()
     result = []
     
