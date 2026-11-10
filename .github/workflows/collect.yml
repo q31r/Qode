@@ -7,6 +7,9 @@ on:
       - 'nodes_*.txt'
       - 'report/**'
       - 'stats.json'
+      - 'irancell.txt'
+      - 'mci.txt'
+      - '*.md'
 
   schedule:
     - cron: '0 0 * * *'
