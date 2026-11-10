@@ -32,6 +32,11 @@ Every day, GitHub Actions automatically updates the following proxy lists. You c
 | [nodes_full.txt](https://raw.githubusercontent.com/q31r/Qode/main/nodes_full.txt) | Plain Text | Every working proxy found across all sources, sorted by speed and priority ports. |
 | [nodes_full_Base64.txt](https://raw.githubusercontent.com/q31r/Qode/main/nodes_full_Base64.txt) | Base64 | Base64 encoded version for legacy clients compatibility. |
 
+#### 🧪 Personal Collection
+| File | Format | Description |
+|---|---|---|
+| [q31r.txt](https://raw.githubusercontent.com/q31r/Qode/main/q31r.txt) | Plain Text | A hand-picked list of personally tested and verified proxies. |
+
 > **Note:** All output files are automatically sorted first by priority ports (for better stability) and then by TCP latency (for faster connections). So the best and fastest servers always appear at the top of every list.
 
 ### 🚀 How to use
@@ -108,6 +113,11 @@ Qode یک جمع‌آوری‌کننده سابسکریپشن و پروکسی V2
 |---|---|---|
 | [nodes_full.txt](https://raw.githubusercontent.com/q31r/Qode/main/nodes_full.txt) | متن ساده | تمام پروکسی‌های سالم پیدا شده از همه منابع، مرتب‌شده بر اساس سرعت و پورت‌های اولویت‌دار. |
 | [nodes_full_Base64.txt](https://raw.githubusercontent.com/q31r/Qode/main/nodes_full_Base64.txt) | Base64 | نسخه کدگذاری‌شده با Base64 برای سازگاری با کلاینت‌های قدیمی. |
+
+#### 🧪 مجموعه شخصی
+| فایل | فرمت | توضیحات |
+|---|---|---|
+| [q31r.txt](https://raw.githubusercontent.com/q31r/Qode/main/q31r.txt) | متن ساده | لیستی دست‌چین شده از پروکسی‌های تست‌شده و تأییدشده شخصی. |
 
 > **نکته:** تمام فایل‌های خروجی ابتدا بر اساس پورت‌های اولویت‌دار (برای پایداری بیشتر) و سپس بر اساس تأخیر TCP (برای اتصال سریع‌تر) مرتب می‌شوند. بنابراین بهترین و سریع‌ترین سرورها همیشه در بالای هر لیست قرار می‌گیرند.
 
