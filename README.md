@@ -35,7 +35,6 @@ Every day, GitHub Actions automatically updates the following proxy lists. You c
 #### 🧪 Personal Collections
 | File | Format | Description |
 |---|---|---|
-| [q31r.txt](https://raw.githubusercontent.com/q31r/Qode/main/q31r.txt) | Plain Text | A hand-picked list of personally tested and verified proxies. |
 | [mci.txt](https://raw.githubusercontent.com/q31r/Qode/main/mci.txt) | Plain Text | Proxies specifically tested and verified for MCI (Hamrah-e Aval) network. |
 | [irancell.txt](https://raw.githubusercontent.com/q31r/Qode/main/irancell.txt) | Plain Text | Proxies specifically tested and verified for Irancell network. |
 
@@ -119,7 +118,6 @@ Qode یک جمع‌آوری‌کننده سابسکریپشن و پروکسی V2
 #### 🧪 مجموعه‌های شخصی
 | فایل | فرمت | توضیحات |
 |---|---|---|
-| [q31r.txt](https://raw.githubusercontent.com/q31r/Qode/main/q31r.txt) | متن ساده | لیستی دست‌چین شده از پروکسی‌های تست‌شده و تأییدشده شخصی. |
 | [mci.txt](https://raw.githubusercontent.com/q31r/Qode/main/mci.txt) | متن ساده | پروکسی‌های تست‌شده و تأییدشده مخصوص شبکه همراه اول (MCI). |
 | [irancell.txt](https://raw.githubusercontent.com/q31r/Qode/main/irancell.txt) | متن ساده | پروکسی‌های تست‌شده و تأییدشده مخصوص شبکه ایرانسل. |
 
