@@ -32,10 +32,12 @@ Every day, GitHub Actions automatically updates the following proxy lists. You c
 | [nodes_full.txt](https://raw.githubusercontent.com/q31r/Qode/main/nodes_full.txt) | Plain Text | Every working proxy found across all sources, sorted by speed and priority ports. |
 | [nodes_full_Base64.txt](https://raw.githubusercontent.com/q31r/Qode/main/nodes_full_Base64.txt) | Base64 | Base64 encoded version for legacy clients compatibility. |
 
-#### 🧪 Personal Collection
+#### 🧪 Personal Collections
 | File | Format | Description |
 |---|---|---|
 | [q31r.txt](https://raw.githubusercontent.com/q31r/Qode/main/q31r.txt) | Plain Text | A hand-picked list of personally tested and verified proxies. |
+| [mci.txt](https://raw.githubusercontent.com/q31r/Qode/main/mci.txt) | Plain Text | Proxies specifically tested and verified for MCI (Hamrah-e Aval) network. |
+| [irancell.txt](https://raw.githubusercontent.com/q31r/Qode/main/irancell.txt) | Plain Text | Proxies specifically tested and verified for Irancell network. |
 
 > **Note:** All output files are automatically sorted first by priority ports (for better stability) and then by TCP latency (for faster connections). So the best and fastest servers always appear at the top of every list.
 
@@ -54,7 +56,7 @@ Qode runs entirely in GitHub Actions with zero manual intervention, ensuring you
 2. **TCP Liveness & Speed:** Performs fast TCP port scans (with retries and longer timeout for unstable servers) to filter out dead nodes and sorts the survivors by connection speed, so you always get the fastest proxies first.
 3. **Priority Port Sorting:** Servers running on standard ports (443, 8443, 2053, etc.) are prioritized and listed at the top, improving stability and bypassing potential ISP restrictions.
 4. **Multi-Format Publishing:** Generates both plain text and Base64 encoded outputs to support a wide range of clients, from modern apps to legacy ones.
-5. **Automated Reports:** After each run, detailed JSON reports are generated in the `report/` directory, containing statistics about source health, deduplication, and alive proxy counts.
+5. **Automated Reports & Stats:** After each run, detailed JSON reports are generated in the `report/` directory and a global `stats.json` is updated, containing statistics about source health, deduplication, and alive proxy counts for external use.
 
 ### ⏰ Update Schedule
 
@@ -66,7 +68,7 @@ The entire pipeline (fetching, testing, and publishing) runs **once every 24 hou
 - 🚀 **High Performance:** Parallel downloading and multi-threaded TCP testing for maximum speed.
 - 🎯 **Quality Assured:** Strict validation, precise deduplication, and priority port sorting to keep only the best servers.
 - 📦 **Dual Format:** Both plain text and Base64 outputs for maximum client compatibility.
-- 📊 **Detailed Reports:** JSON reports for every run to track source health and list quality.
+- 📊 **Detailed Reports:** JSON reports and a global `stats.json` for every run to track source health and list quality.
 - 🔄 **Daily Updates:** Fresh lists published every 24 hours without any downtime.
 
 ### ❓ FAQ
@@ -114,10 +116,12 @@ Qode یک جمع‌آوری‌کننده سابسکریپشن و پروکسی V2
 | [nodes_full.txt](https://raw.githubusercontent.com/q31r/Qode/main/nodes_full.txt) | متن ساده | تمام پروکسی‌های سالم پیدا شده از همه منابع، مرتب‌شده بر اساس سرعت و پورت‌های اولویت‌دار. |
 | [nodes_full_Base64.txt](https://raw.githubusercontent.com/q31r/Qode/main/nodes_full_Base64.txt) | Base64 | نسخه کدگذاری‌شده با Base64 برای سازگاری با کلاینت‌های قدیمی. |
 
-#### 🧪 مجموعه شخصی
+#### 🧪 مجموعه‌های شخصی
 | فایل | فرمت | توضیحات |
 |---|---|---|
 | [q31r.txt](https://raw.githubusercontent.com/q31r/Qode/main/q31r.txt) | متن ساده | لیستی دست‌چین شده از پروکسی‌های تست‌شده و تأییدشده شخصی. |
+| [mci.txt](https://raw.githubusercontent.com/q31r/Qode/main/mci.txt) | متن ساده | پروکسی‌های تست‌شده و تأییدشده مخصوص شبکه همراه اول (MCI). |
+| [irancell.txt](https://raw.githubusercontent.com/q31r/Qode/main/irancell.txt) | متن ساده | پروکسی‌های تست‌شده و تأییدشده مخصوص شبکه ایرانسل. |
 
 > **نکته:** تمام فایل‌های خروجی ابتدا بر اساس پورت‌های اولویت‌دار (برای پایداری بیشتر) و سپس بر اساس تأخیر TCP (برای اتصال سریع‌تر) مرتب می‌شوند. بنابراین بهترین و سریع‌ترین سرورها همیشه در بالای هر لیست قرار می‌گیرند.
 
@@ -136,7 +140,7 @@ Qode کاملاً در GitHub Actions اجرا می‌شود و هیچ دخال�
 2. **تست زنده بودن TCP و سرعت:** اسکن سریع پورت TCP را انجام می‌دهد (با تلاش مجدد و تایم‌اوت بیشتر برای سرورهای ناپایدار) تا نودهای مرده را فیلتر کند و بازمانده‌ها را بر اساس سرعت اتصال مرتب می‌کند، بنابراین همیشه سریع‌ترین پروکسی‌ها را اول دریافت می‌کنید.
 3. **مرتب‌سازی بر اساس پورت اولویت‌دار:** سرورهایی که روی پورت‌های استاندارد (443، 8443، 2053 و غیره) اجرا می‌شوند، اولویت داده شده و در بالای لیست قرار می‌گیرند، که باعث بهبود پایداری و دور زدن محدودیت‌های احتمالی ISP می‌شود.
 4. **انتشار چند فرمتی:** هم خروجی متن ساده و هم Base64 را برای پشتیبانی از طیف گسترده‌ای از کلاینت‌ها، از اپلیکیشن‌های مدرن تا کلاینت‌های قدیمی، تولید می‌کند.
-5. **گزارش‌های خودکار:** پس از هر اجرا، گزارش‌های JSON دقیق در پوشه `report/` تولید می‌شوند که شامل آمار مربوط به سلامت منابع، حذف تکراری و تعداد پروکسی‌های زنده است.
+5. **گزارش‌ها و آمار خودکار:** پس از هر اجرا، گزارش‌های JSON دقیق در پوشه `report/` تولید می‌شوند و یک فایل `stats.json` نیز به‌روزرسانی می‌شود که شامل آمار مربوط به سلامت منابع، حذف تکراری و تعداد پروکسی‌های زنده برای استفاده خارجی است.
 
 ### ⏰ زمان‌بندی به‌روزرسانی
 
@@ -148,7 +152,7 @@ Qode کاملاً در GitHub Actions اجرا می‌شود و هیچ دخال�
 - 🚀 **عملکرد بالا:** دانلود موازی و تست TCP چند رشته‌ای برای حداکثر سرعت.
 - 🎯 **تضمین کیفیت:** اعتبارسنجی سخت‌گیرانه، حذف تکراری دقیق و مرتب‌سازی بر اساس پورت اولویت‌دار برای نگه‌داشتن فقط بهترین سرورها.
 - 📦 **دو فرمت:** خروجی متن ساده و Base64 برای حداکثر سازگاری با کلاینت.
-- 📊 **گزارش‌های دقیق:** گزارش‌های JSON برای هر اجرا برای پیگیری سلامت منابع و کیفیت لیست.
+- 📊 **گزارش‌های دقیق:** گزارش‌های JSON و `stats.json` برای هر اجرا برای پیگیری سلامت منابع و کیفیت لیست.
 - 🔄 **به‌روزرسانی روزانه:** لیست‌های تازه هر ۲۴ ساعت یک بار بدون هیچ توقف منتشر می‌شوند.
 
 ### ❓ سوالات متداول
