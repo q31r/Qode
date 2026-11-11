@@ -7,8 +7,8 @@ todo.txt
 .env
 .env.*
 
-analyzer.py
-ratings.json
+new.py
+new.txt
 
 __pycache__/
 *.pyc
