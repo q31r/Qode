@@ -1,24 +1,19 @@
 {
   "label": "full",
-  "timestamp": "2026-11-11T06:34:09.615178+00:00",
-  "duration_seconds": 2929.2,
-  "sources_total": 197,
-  "sources_ok": 174,
+  "timestamp": "2026-11-11T15:38:46.590605+00:00",
+  "duration_seconds": 2766.28,
+  "sources_total": 210,
+  "sources_ok": 187,
   "sources_failed": 23,
-  "raw_count": 203834,
-  "filtered_out_invalid": 30972,
-  "deduplicated_count": 53113,
-  "duplicates_removed": 119749,
-  "alive_count": 30441,
+  "raw_count": 235367,
+  "filtered_out_invalid": 31982,
+  "deduplicated_count": 54727,
+  "duplicates_removed": 148658,
+  "alive_count": 31270,
   "failed_sources": [
     {
       "id": 50,
       "tag": "Zeta Archive 50",
-      "error": "http_404"
-    },
-    {
-      "id": 57,
-      "tag": "Nu Backbone 57",
       "error": "http_404"
     },
     {
@@ -27,18 +22,23 @@
       "error": "http_404"
     },
     {
-      "id": 55,
-      "tag": "Beta Cluster 55",
-      "error": "http_404"
-    },
-    {
-      "id": 59,
-      "tag": "Alpha Node 59",
-      "error": "http_404"
-    },
-    {
       "id": 51,
       "tag": "Nu Backbone 51",
+      "error": "http_404"
+    },
+    {
+      "id": 57,
+      "tag": "Nu Backbone 57",
+      "error": "http_404"
+    },
+    {
+      "id": 58,
+      "tag": "Xi Access 58",
+      "error": "http_404"
+    },
+    {
+      "id": 55,
+      "tag": "Beta Cluster 55",
       "error": "http_404"
     },
     {
@@ -57,13 +57,8 @@
       "error": "http_404"
     },
     {
-      "id": 58,
-      "tag": "Xi Access 58",
-      "error": "http_404"
-    },
-    {
-      "id": 60,
-      "tag": "Delta Group 60",
+      "id": 59,
+      "tag": "Alpha Node 59",
       "error": "http_404"
     },
     {
@@ -72,23 +67,13 @@
       "error": "http_404"
     },
     {
-      "id": 64,
-      "tag": "Eta Bundle 64",
-      "error": "http_404"
-    },
-    {
       "id": 63,
       "tag": "Nu Backbone 63",
       "error": "http_404"
     },
     {
-      "id": 67,
-      "tag": "Rho Bridge 67",
-      "error": "http_404"
-    },
-    {
-      "id": 62,
-      "tag": "Eta Bundle 62",
+      "id": 60,
+      "tag": "Delta Group 60",
       "error": "http_404"
     },
     {
@@ -97,8 +82,8 @@
       "error": "http_404"
     },
     {
-      "id": 66,
-      "tag": "Beta Cluster 66",
+      "id": 64,
+      "tag": "Eta Bundle 64",
       "error": "http_404"
     },
     {
@@ -107,8 +92,23 @@
       "error": "http_404"
     },
     {
+      "id": 67,
+      "tag": "Rho Bridge 67",
+      "error": "http_404"
+    },
+    {
       "id": 69,
       "tag": "Delta Group 69",
+      "error": "http_404"
+    },
+    {
+      "id": 66,
+      "tag": "Beta Cluster 66",
+      "error": "http_404"
+    },
+    {
+      "id": 62,
+      "tag": "Eta Bundle 62",
       "error": "http_404"
     },
     {
