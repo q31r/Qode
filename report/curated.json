@@ -1,7 +1,7 @@
 {
   "label": "curated",
-  "timestamp": "2026-11-11T14:52:40.307995+00:00",
-  "duration_seconds": 124.03,
+  "timestamp": "2026-11-12T06:52:22.568008+00:00",
+  "duration_seconds": 136.77,
   "sources_total": 36,
   "sources_ok": 13,
   "sources_failed": 23,
@@ -9,21 +9,16 @@
   "filtered_out_invalid": 18,
   "deduplicated_count": 1210,
   "duplicates_removed": 859,
-  "alive_count": 564,
+  "alive_count": 563,
   "failed_sources": [
-    {
-      "id": 20,
-      "tag": "Xi Access 20",
-      "error": "http_404"
-    },
     {
       "id": 14,
       "tag": "Zeta Archive 14",
       "error": "http_404"
     },
     {
-      "id": 17,
-      "tag": "Tau Tunnel 17",
+      "id": 15,
+      "tag": "Nu Backbone 15",
       "error": "http_404"
     },
     {
@@ -32,13 +27,18 @@
       "error": "http_404"
     },
     {
-      "id": 23,
-      "tag": "Alpha Node 23",
+      "id": 17,
+      "tag": "Tau Tunnel 17",
       "error": "http_404"
     },
     {
-      "id": 21,
-      "tag": "Nu Backbone 21",
+      "id": 16,
+      "tag": "Tau Tunnel 16",
+      "error": "http_404"
+    },
+    {
+      "id": 20,
+      "tag": "Xi Access 20",
       "error": "http_404"
     },
     {
@@ -52,38 +52,13 @@
       "error": "http_404"
     },
     {
-      "id": 16,
-      "tag": "Tau Tunnel 16",
+      "id": 23,
+      "tag": "Alpha Node 23",
       "error": "http_404"
     },
     {
-      "id": 15,
-      "tag": "Nu Backbone 15",
-      "error": "http_404"
-    },
-    {
-      "id": 25,
-      "tag": "Epsilon Set 25",
-      "error": "http_404"
-    },
-    {
-      "id": 27,
-      "tag": "Nu Backbone 27",
-      "error": "http_404"
-    },
-    {
-      "id": 26,
-      "tag": "Eta Bundle 26",
-      "error": "http_404"
-    },
-    {
-      "id": 31,
-      "tag": "Rho Bridge 31",
-      "error": "http_404"
-    },
-    {
-      "id": 29,
-      "tag": "Mu Uplink 29",
+      "id": 21,
+      "tag": "Nu Backbone 21",
       "error": "http_404"
     },
     {
@@ -92,18 +67,18 @@
       "error": "http_404"
     },
     {
-      "id": 32,
-      "tag": "Alpha Node 32",
+      "id": 25,
+      "tag": "Epsilon Set 25",
       "error": "http_404"
     },
     {
-      "id": 33,
-      "tag": "Delta Group 33",
+      "id": 26,
+      "tag": "Eta Bundle 26",
       "error": "http_404"
     },
     {
-      "id": 30,
-      "tag": "Beta Cluster 30",
+      "id": 27,
+      "tag": "Nu Backbone 27",
       "error": "http_404"
     },
     {
@@ -112,13 +87,38 @@
       "error": "http_404"
     },
     {
-      "id": 34,
-      "tag": "Upsilon Edge 34",
+      "id": 29,
+      "tag": "Mu Uplink 29",
+      "error": "http_404"
+    },
+    {
+      "id": 30,
+      "tag": "Beta Cluster 30",
+      "error": "http_404"
+    },
+    {
+      "id": 31,
+      "tag": "Rho Bridge 31",
+      "error": "http_404"
+    },
+    {
+      "id": 33,
+      "tag": "Delta Group 33",
+      "error": "http_404"
+    },
+    {
+      "id": 32,
+      "tag": "Alpha Node 32",
       "error": "http_404"
     },
     {
       "id": 35,
       "tag": "Rho Bridge 35",
+      "error": "http_404"
+    },
+    {
+      "id": 34,
+      "tag": "Upsilon Edge 34",
       "error": "http_404"
     },
     {
