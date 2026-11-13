@@ -23,20 +23,20 @@ Every day, GitHub Actions automatically updates the following proxy lists. You c
 #### 💎 Curated (Hand-picked Sources)
 | File | Format | Description |
 |---|---|---|
-| [nodes_curated.txt](https://raw.githubusercontent.com/q31r/Qode/main/nodes_curated.txt) | Plain Text | Configs from hand-picked and popular sources, verified for TCP connectivity. |
-| [nodes_curated_Base64.txt](https://raw.githubusercontent.com/q31r/Qode/main/nodes_curated_Base64.txt) | Base64 | Base64 encoded version for legacy clients compatibility. |
+| [nodes_curated.txt](https://raw.githubusercontent.com/q31r/Qode-free-v2ray-proxy/main/nodes_curated.txt) | Plain Text | Configs from hand-picked and popular sources, verified for TCP connectivity. |
+| [nodes_curated_Base64.txt](https://raw.githubusercontent.com/q31r/Qode-free-v2ray-proxy/main/nodes_curated_Base64.txt) | Base64 | Base64 encoded version for legacy clients compatibility. |
 
 #### 📦 Full (All Sources)
 | File | Format | Description |
 |---|---|---|
-| [nodes_full.txt](https://raw.githubusercontent.com/q31r/Qode/main/nodes_full.txt) | Plain Text | Every working proxy found across all sources, sorted by speed and priority ports. |
-| [nodes_full_Base64.txt](https://raw.githubusercontent.com/q31r/Qode/main/nodes_full_Base64.txt) | Base64 | Base64 encoded version for legacy clients compatibility. |
+| [nodes_full.txt](https://raw.githubusercontent.com/q31r/Qode-free-v2ray-proxy/main/nodes_full.txt) | Plain Text | Every working proxy found across all sources, sorted by speed and priority ports. |
+| [nodes_full_Base64.txt](https://raw.githubusercontent.com/q31r/Qode-free-v2ray-proxy/main/nodes_full_Base64.txt) | Base64 | Base64 encoded version for legacy clients compatibility. |
 
 #### 🧪 Personal Collections
 | File | Format | Description |
 |---|---|---|
-| [mci.txt](https://raw.githubusercontent.com/q31r/Qode/main/mci.txt) | Plain Text | Proxies specifically tested and verified for MCI (Hamrah-e Aval) network. |
-| [irancell.txt](https://raw.githubusercontent.com/q31r/Qode/main/irancell.txt) | Plain Text | Proxies specifically tested and verified for Irancell network. |
+| [mci.txt](https://raw.githubusercontent.com/q31r/Qode-free-v2ray-proxy/main/mci.txt) | Plain Text | Proxies specifically tested and verified for MCI (Hamrah-e Aval) network. |
+| [irancell.txt](https://raw.githubusercontent.com/q31r/Qode-free-v2ray-proxy/main/irancell.txt) | Plain Text | Proxies specifically tested and verified for Irancell network. |
 
 > **Note:** All output files are automatically sorted first by priority ports (for better stability) and then by TCP latency (for faster connections). So the best and fastest servers always appear at the top of every list.
 
@@ -106,20 +106,20 @@ Qode یک جمع‌آوری‌کننده سابسکریپشن و پروکسی V2
 #### 💎 دست‌چین شده (منابع منتخب)
 | فایل | فرمت | توضیحات |
 |---|---|---|
-| [nodes_curated.txt](https://raw.githubusercontent.com/q31r/Qode/main/nodes_curated.txt) | متن ساده | کانفیگ‌های منابع دست‌چین شده و محبوب، تست‌شده برای اتصال TCP. |
-| [nodes_curated_Base64.txt](https://raw.githubusercontent.com/q31r/Qode/main/nodes_curated_Base64.txt) | Base64 | نسخه کدگذاری‌شده با Base64 برای سازگاری با کلاینت‌های قدیمی. |
+| [nodes_curated.txt](https://raw.githubusercontent.com/q31r/Qode-free-v2ray-proxy/main/nodes_curated.txt) | متن ساده | کانفیگ‌های منابع دست‌چین شده و محبوب، تست‌شده برای اتصال TCP. |
+| [nodes_curated_Base64.txt](https://raw.githubusercontent.com/q31r/Qode-free-v2ray-proxy/main/nodes_curated_Base64.txt) | Base64 | نسخه کدگذاری‌شده با Base64 برای سازگاری با کلاینت‌های قدیمی. |
 
 #### 📦 کامل (تمام منابع)
 | فایل | فرمت | توضیحات |
 |---|---|---|
-| [nodes_full.txt](https://raw.githubusercontent.com/q31r/Qode/main/nodes_full.txt) | متن ساده | تمام پروکسی‌های سالم پیدا شده از همه منابع، مرتب‌شده بر اساس سرعت و پورت‌های اولویت‌دار. |
-| [nodes_full_Base64.txt](https://raw.githubusercontent.com/q31r/Qode/main/nodes_full_Base64.txt) | Base64 | نسخه کدگذاری‌شده با Base64 برای سازگاری با کلاینت‌های قدیمی. |
+| [nodes_full.txt](https://raw.githubusercontent.com/q31r/Qode-free-v2ray-proxy/main/nodes_full.txt) | متن ساده | تمام پروکسی‌های سالم پیدا شده از همه منابع، مرتب‌شده بر اساس سرعت و پورت‌های اولویت‌دار. |
+| [nodes_full_Base64.txt](https://raw.githubusercontent.com/q31r/Qode-free-v2ray-proxy/main/nodes_full_Base64.txt) | Base64 | نسخه کدگذاری‌شده با Base64 برای سازگاری با کلاینت‌های قدیمی. |
 
 #### 🧪 مجموعه‌های شخصی
 | فایل | فرمت | توضیحات |
 |---|---|---|
-| [mci.txt](https://raw.githubusercontent.com/q31r/Qode/main/mci.txt) | متن ساده | پروکسی‌های تست‌شده و تأییدشده مخصوص شبکه همراه اول (MCI). |
-| [irancell.txt](https://raw.githubusercontent.com/q31r/Qode/main/irancell.txt) | متن ساده | پروکسی‌های تست‌شده و تأییدشده مخصوص شبکه ایرانسل. |
+| [mci.txt](https://raw.githubusercontent.com/q31r/Qode-free-v2ray-proxy/main/mci.txt) | متن ساده | پروکسی‌های تست‌شده و تأییدشده مخصوص شبکه همراه اول (MCI). |
+| [irancell.txt](https://raw.githubusercontent.com/q31r/Qode-free-v2ray-proxy/main/irancell.txt) | متن ساده | پروکسی‌های تست‌شده و تأییدشده مخصوص شبکه ایرانسل. |
 
 > **نکته:** تمام فایل‌های خروجی ابتدا بر اساس پورت‌های اولویت‌دار (برای پایداری بیشتر) و سپس بر اساس تأخیر TCP (برای اتصال سریع‌تر) مرتب می‌شوند. بنابراین بهترین و سریع‌ترین سرورها همیشه در بالای هر لیست قرار می‌گیرند.
 
