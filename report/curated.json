@@ -1,7 +1,7 @@
 {
   "label": "curated",
-  "timestamp": "2026-11-12T06:52:22.568008+00:00",
-  "duration_seconds": 136.77,
+  "timestamp": "2026-11-13T06:10:39.362604+00:00",
+  "duration_seconds": 137.9,
   "sources_total": 36,
   "sources_ok": 13,
   "sources_failed": 23,
@@ -12,13 +12,18 @@
   "alive_count": 563,
   "failed_sources": [
     {
+      "id": 15,
+      "tag": "Nu Backbone 15",
+      "error": "http_404"
+    },
+    {
       "id": 14,
       "tag": "Zeta Archive 14",
       "error": "http_404"
     },
     {
-      "id": 15,
-      "tag": "Nu Backbone 15",
+      "id": 16,
+      "tag": "Tau Tunnel 16",
       "error": "http_404"
     },
     {
@@ -32,11 +37,6 @@
       "error": "http_404"
     },
     {
-      "id": 16,
-      "tag": "Tau Tunnel 16",
-      "error": "http_404"
-    },
-    {
       "id": 20,
       "tag": "Xi Access 20",
       "error": "http_404"
@@ -47,8 +47,8 @@
       "error": "http_404"
     },
     {
-      "id": 22,
-      "tag": "Xi Access 22",
+      "id": 21,
+      "tag": "Nu Backbone 21",
       "error": "http_404"
     },
     {
@@ -57,8 +57,8 @@
       "error": "http_404"
     },
     {
-      "id": 21,
-      "tag": "Nu Backbone 21",
+      "id": 22,
+      "tag": "Xi Access 22",
       "error": "http_404"
     },
     {
@@ -77,13 +77,13 @@
       "error": "http_404"
     },
     {
-      "id": 27,
-      "tag": "Nu Backbone 27",
+      "id": 28,
+      "tag": "Eta Bundle 28",
       "error": "http_404"
     },
     {
-      "id": 28,
-      "tag": "Eta Bundle 28",
+      "id": 27,
+      "tag": "Nu Backbone 27",
       "error": "http_404"
     },
     {
@@ -92,18 +92,13 @@
       "error": "http_404"
     },
     {
-      "id": 30,
-      "tag": "Beta Cluster 30",
-      "error": "http_404"
-    },
-    {
       "id": 31,
       "tag": "Rho Bridge 31",
       "error": "http_404"
     },
     {
-      "id": 33,
-      "tag": "Delta Group 33",
+      "id": 30,
+      "tag": "Beta Cluster 30",
       "error": "http_404"
     },
     {
@@ -112,8 +107,13 @@
       "error": "http_404"
     },
     {
-      "id": 35,
-      "tag": "Rho Bridge 35",
+      "id": 33,
+      "tag": "Delta Group 33",
+      "error": "http_404"
+    },
+    {
+      "id": 36,
+      "tag": "Xi Access 36",
       "error": "http_404"
     },
     {
@@ -122,8 +122,8 @@
       "error": "http_404"
     },
     {
-      "id": 36,
-      "tag": "Xi Access 36",
+      "id": 35,
+      "tag": "Rho Bridge 35",
       "error": "http_404"
     }
   ]
