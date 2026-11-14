@@ -1,15 +1,15 @@
 {
   "label": "full",
-  "timestamp": "2026-11-13T06:59:24.081361+00:00",
-  "duration_seconds": 2924.71,
+  "timestamp": "2026-11-14T06:43:51.273724+00:00",
+  "duration_seconds": 2884.59,
   "sources_total": 210,
   "sources_ok": 186,
   "sources_failed": 24,
-  "raw_count": 237278,
-  "filtered_out_invalid": 32774,
-  "deduplicated_count": 54622,
-  "duplicates_removed": 149882,
-  "alive_count": 31026,
+  "raw_count": 238923,
+  "filtered_out_invalid": 32908,
+  "deduplicated_count": 54405,
+  "duplicates_removed": 151610,
+  "alive_count": 31334,
   "failed_sources": [
     {
       "id": 51,
@@ -19,11 +19,6 @@
     {
       "id": 52,
       "tag": "Tau Tunnel 52",
-      "error": "http_404"
-    },
-    {
-      "id": 57,
-      "tag": "Nu Backbone 57",
       "error": "http_404"
     },
     {
@@ -37,13 +32,8 @@
       "error": "http_404"
     },
     {
-      "id": 55,
-      "tag": "Beta Cluster 55",
-      "error": "http_404"
-    },
-    {
-      "id": 59,
-      "tag": "Alpha Node 59",
+      "id": 53,
+      "tag": "Tau Tunnel 53",
       "error": "http_404"
     },
     {
@@ -52,8 +42,18 @@
       "error": "http_404"
     },
     {
-      "id": 53,
-      "tag": "Tau Tunnel 53",
+      "id": 59,
+      "tag": "Alpha Node 59",
+      "error": "http_404"
+    },
+    {
+      "id": 55,
+      "tag": "Beta Cluster 55",
+      "error": "http_404"
+    },
+    {
+      "id": 57,
+      "tag": "Nu Backbone 57",
       "error": "http_404"
     },
     {
@@ -77,23 +77,13 @@
       "error": "http_404"
     },
     {
-      "id": 63,
-      "tag": "Nu Backbone 63",
-      "error": "http_404"
-    },
-    {
       "id": 65,
       "tag": "Mu Uplink 65",
       "error": "http_404"
     },
     {
-      "id": 66,
-      "tag": "Beta Cluster 66",
-      "error": "http_404"
-    },
-    {
-      "id": 67,
-      "tag": "Rho Bridge 67",
+      "id": 63,
+      "tag": "Nu Backbone 63",
       "error": "http_404"
     },
     {
@@ -102,13 +92,23 @@
       "error": "http_404"
     },
     {
-      "id": 69,
-      "tag": "Delta Group 69",
+      "id": 68,
+      "tag": "Alpha Node 68",
       "error": "http_404"
     },
     {
-      "id": 68,
-      "tag": "Alpha Node 68",
+      "id": 67,
+      "tag": "Rho Bridge 67",
+      "error": "http_404"
+    },
+    {
+      "id": 66,
+      "tag": "Beta Cluster 66",
+      "error": "http_404"
+    },
+    {
+      "id": 69,
+      "tag": "Delta Group 69",
       "error": "http_404"
     },
     {
